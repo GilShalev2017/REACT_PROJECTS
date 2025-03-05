@@ -123,3 +123,10 @@ export interface AiJobRequest {
     ShowErrors?: boolean;
     currentRunIndex?: number;
 }
+
+export class LanguageDm {
+    EnglishName?: string;
+    DisplayName: string = '';
+    ProvidersLanguageCode?: { [providerId: string]: string } = {};
+    isTranslated?: boolean;
+}

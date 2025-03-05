@@ -1,5 +1,5 @@
 import axios from "axios";
-import { JobRequestFilter, AiJobRequest, Channel } from "../models/Job";
+import { JobRequestFilter, AiJobRequest, Channel, LanguageDm } from "../models/Job";
 
 
 const API_KEY = "ActAuth eyJpZCI6MiwibmFtZSI6IkFkbWluaXN0cmF0b3IiLCJhY3R1c191c2VyX2dyb3VwX2lkIjowLCJpc19hZG1pbiI6dHJ1ZSwic2Vzc2lvbl9ndWlkIjoiNWIwYjU5YTItNTFjYi00ZjY2LTk5YzAtOTIzOTQyNzNjZjlmIiwiaW5fZGlyZWN0b3J5X3NlcnZpY2UiOmZhbHNlLCJhZF9ncm91cF9uYW1lIjpudWxsLCJzY29wZSI6IiIsIklkZW50aXR5IjpudWxsfSZYJlgmWC0xNjA2MTEwNzA3";
@@ -7,17 +7,21 @@ const API_KEY = "ActAuth eyJpZCI6MiwibmFtZSI6IkFkbWluaXN0cmF0b3IiLCJhY3R1c191c2V
 export const getFilteredJobRequests = async (filter: JobRequestFilter): Promise<AiJobRequest[]> => {
     try {
         const url = "http://localhost:8894/intelligence/api/aijob/ai-job-requests";
+
+        //filter = {};
         //const url = "http://manila.local/actus5/v2/ActIntelligenceService/intelligence/api/aijob/ai-job-requests";
         // await axios.options(url, {
         //     headers: { "actauth": API_KEY },
         // });
-        const response = await axios.post<AiJobRequest[]>(url, filter, {
-            headers: {
-                "actauth": API_KEY // Changed from Authorization to actauth
-                //"Content-Type": "application/json",
-            },
-            //withCredentials: true, // Ensures cookies & auth headers are sent
-        });
+        const response = await axios.post<AiJobRequest[]>(url, filter
+            // , {
+            // headers: {
+            //     "actauth": API_KEY,
+            //     "Content-Type": "application/json",
+            // },
+            // withCredentials: true, // Ensures cookies & auth headers are sent
+    //    }
+    );
         return response.data;
     } catch (error) {
         console.error("Error fetching job requests:", error);
@@ -56,12 +60,24 @@ export const getChannels = async (): Promise<Channel[]> => {
         return response.data;
     } catch (error) {
         console.error("Error fetching channels:", error);
-        throw error; 
+        throw error;
     }
 };
 
-// query(params = null): Observable<Channel[]> {
-//     return this.http.get(this.api, params ? { params } : {}).pipe(
-//       map((channels: any[]) => channels.map(channel => this.channelFromReply(channel)))
-//     );
-//   }
+export const getLanguages = async (): Promise<LanguageDm[]> => {
+    try {
+        const languagesUrl = 'http://corona.local/actus5/v2/ActIntelligenceService/intelligence/api/service/languages';
+        
+        const response = await axios.get<LanguageDm[]>(languagesUrl, {
+            headers: {
+                actauth: API_KEY,
+                // "Content-Type": "application/json",
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching channels:", error);
+        throw error;
+    };
+}
+

@@ -6,7 +6,16 @@ import {
   FormControl,
   InputLabel,
   MenuItem,
-  Select
+  Select,
+  styled,
+  DialogProps,
+  Box,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  FormControlLabel,
+  Switch,
+  SelectChangeEvent
 } from "@mui/material";
 import AddNewJobComponent from "../components/AddNewJobComponent";
 import "./JobStatus.css";
@@ -22,6 +31,13 @@ const statuses = [
   { text: "Stopped", selected: false },
 ];
 
+// const WideDialog = styled(Dialog)(({ theme }) => ({
+//   '& .MuiDialog-paper': {
+//     width: '180%',
+//     maxWidth: 'none',
+//   },
+// }));
+
 const JobDashboardPage: React.FC = () => {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [jobs, setJobs] = useState<AiJobRequest[]>([]);
@@ -33,6 +49,10 @@ const JobDashboardPage: React.FC = () => {
   const [openNewJobDialog, setOpenNewJobDialog] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [selectedSortBy, setSelectedSortBy] = useState<number>(0);
+
+  // const [fullWidth, setFullWidth] = React.useState(true);
+  // const [maxWidth, setMaxWidth] = React.useState<DialogProps['maxWidth']>('lg');
+  // const [open, setOpen] = React.useState(false);
 
   const filterByCategory = (status: { text: string }) => {
     setSelectedStatus(status.text);
@@ -53,7 +73,7 @@ const JobDashboardPage: React.FC = () => {
   }
 
   const fetchJobs = () => {
-    if (!filterFromDate || !filterToDate) return; // Ensure state is updated first
+    if (!filterFromDate || !filterToDate) return; 
 
     const filter: JobRequestFilter = {
       Start: filterFromDate,
@@ -149,6 +169,25 @@ const JobDashboardPage: React.FC = () => {
     );
   };
 
+  // const handleClickOpen = () => {
+  //   setOpen(true);
+  // };
+
+  // const handleClose = () => {
+  //   setOpen(false);
+  // };
+
+  // const handleMaxWidthChange = (event: SelectChangeEvent<typeof maxWidth>) => {
+  //   setMaxWidth(
+  //     // @ts-expect-error autofill of arbitrary value is not handled.
+  //     event.target.value,
+  //   );
+  // };
+
+  // const handleFullWidthChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   setFullWidth(event.target.checked);
+  // };
+
   return (
     <Paper>
 
@@ -161,6 +200,9 @@ const JobDashboardPage: React.FC = () => {
           <Button variant="contained" color="primary" onClick={handleOpenNewJobDialog}>
             New Job
           </Button>
+          {/* <Button variant="outlined" onClick={handleClickOpen}>
+            Open max-width dialog
+          </Button> */}
         </div>
       </Toolbar>
 
@@ -182,7 +224,7 @@ const JobDashboardPage: React.FC = () => {
         <div style={{ display: "flex", alignItems: "center" }}>
           <FormControl margin="normal" sx={{ marginRight: 2, minWidth: 150 }}>
             <InputLabel>Filter by Time-Range</InputLabel>
-            <Select value={selectedTimeRangeFilter} onChange={(e) => setSelectedTimeRangeFilter(e.target.value)}>
+            <Select value={selectedTimeRangeFilter} onChange={(e) => setSelectedTimeRangeFilter(e.target.value)} label="Filter by Time-Range">
               <MenuItem value="today">Today</MenuItem>
               <MenuItem value="lweek">Last week</MenuItem>
               <MenuItem value="l2week">Last two weeks</MenuItem>
@@ -190,14 +232,9 @@ const JobDashboardPage: React.FC = () => {
             </Select>
           </FormControl>
 
-          {/* <FormControl margin="normal" sx={{ marginRight: 2, minWidth: 150 }}>
-            <InputLabel>Filter by Channel</InputLabel>
-            <Select value={selectedChannels} onChange={(e) => setSelectedChannels(e.target.value as any[])}>
-            </Select>
-          </FormControl> */}
           <FormControl margin="normal" sx={{ marginRight: 2, minWidth: 150 }}>
             <InputLabel>Filter by Channel</InputLabel>
-            <Select multiple value={selectedChannels} onChange={(e) => setSelectedChannels(e.target.value as number[])}>
+            <Select multiple value={selectedChannels} onChange={(e) => setSelectedChannels(e.target.value as number[])} label="Filter by Channel">
               {channels.map((channel) => (
                 <MenuItem key={channel.id} value={channel.id}>
                   {channel.displayName}
@@ -208,7 +245,7 @@ const JobDashboardPage: React.FC = () => {
 
           <FormControl margin="normal" sx={{ minWidth: 120 }}>
             <InputLabel>Sort By</InputLabel>
-            <Select value={selectedSortBy} onChange={(e) => setSelectedSortBy(e.target.value as number)}>
+            <Select value={selectedSortBy} onChange={(e) => setSelectedSortBy(e.target.value as number)} label="Sort By">
               <MenuItem value="0">Newest</MenuItem>
               <MenuItem value="1">Oldest</MenuItem>
             </Select>
@@ -255,11 +292,14 @@ const JobDashboardPage: React.FC = () => {
           </TableBody>
         </Table>
       </TableContainer>
-      {/* New Job Dialog */}
-      <Dialog open={openNewJobDialog} onClose={handleCloseNewJobDialog} fullWidth maxWidth="sm">
-        <DialogTitle>Add New Job</DialogTitle>
+      
+      <Dialog open={openNewJobDialog} onClose={handleCloseNewJobDialog}
+        fullWidth={true}
+        maxWidth={'lg'}>
+        {/* <DialogTitle>Add New Job</DialogTitle> */}
         <AddNewJobComponent open={openNewJobDialog} onClose={handleCloseNewJobDialog} onJobAdded={handleSaveNewJob} />
       </Dialog>
+
     </Paper>
   );
 };

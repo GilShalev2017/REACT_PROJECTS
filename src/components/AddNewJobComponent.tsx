@@ -21,12 +21,15 @@ import {
   Chip,
   Theme,
   useTheme,
+  FormHelperText,
+  Paper,
 } from "@mui/material";
-import { AiJobRequest, Channel, RuleRecurrenceEnum } from "../models/Job";
-import { getChannels } from "../api/jobService";
+import { AiJobRequest, Channel, LanguageDm, RuleRecurrenceEnum } from "../models/Job";
+import { getChannels, getLanguages } from "../api/jobService";
 import { DatePicker, LocalizationProvider, TimePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { Dayjs } from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
+import { red } from "@mui/material/colors";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -59,52 +62,107 @@ const AddNewJobComponent: React.FC<AddNewJobComponentProps> = ({ open, onClose, 
 
   const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-  // const [selectedDate, setSelectedDate] = useState<Dayjs | null>(dayjs());
-  // const [startTime, setStartTime] = useState<Dayjs | null>(dayjs().set('hour', 20).set('minute', 0));
-  // const [endTime, setEndTime] = useState<Dayjs | null>(dayjs().set('hour', 22).set('minute', 0));
+  const [selectedDate, setSelectedDate] = useState<Dayjs | null>(dayjs());
+  const [startTime, setStartTime] = useState<Dayjs | null>(dayjs().set('hour', 20).set('minute', 0));
+  const [endTime, setEndTime] = useState<Dayjs | null>(dayjs().set('hour', 22).set('minute', 0));
+
+  const [keywordLanguage, setKeywordLanguage] = useState("");
+  const [keywords, setKeywords] = useState<string[]>([]);
+  const [alertDestinations, setAlertDestinations] = useState<number[]>([]);
+  const [sameLanguageCaptions, setSameLanguageCaptions] = useState(false);
+  const [translatedLanguages, setTranslatedLanguages] = useState<string[]>([]);
+
+  const [languages, setLanguages] = useState<LanguageDm[]>([]);
 
   const theme = useTheme();
 
-  useEffect(() => {
-    const fetchChannelsData = async () => {
-      setLoadingChannels(true);
-      setErrorChannels(null);
-      try {
-        const fetchedChannels = await getChannels();
-        setChannels(fetchedChannels);
-      } catch (err: any) {
-        setErrorChannels(err.message || "Failed to fetch channels");
-        console.error("Error fetching channels:", err);
-      } finally {
-        setLoadingChannels(false);
-      }
-    };
+  const fetchChannelsData = async () => {
+    setLoadingChannels(true);
+    setErrorChannels(null);
+    try {
+      const fetchedChannels = await getChannels();
+      setChannels(fetchedChannels);
+    } catch (err: any) {
+      setErrorChannels(err.message || "Failed to fetch channels");
+      console.error("Error fetching channels:", err);
+    } finally {
+      setLoadingChannels(false);
+    }
+  };
 
+  const fetchLanguagesData = async () => {
+    try {
+      const fetchedLanguages = await getLanguages();
+      setLanguages(fetchedLanguages);
+    } catch (err: any) {
+      console.error("Error fetching languages:", err);
+    }
+  };
+
+  useEffect(() => {
     fetchChannelsData();
+    fetchLanguagesData();
   }, []);
 
+  const handleKeywordsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    const keywordsArray = inputValue.split(',').map((keyword) => keyword.trim());
+    setKeywords(keywordsArray);
+    console.log(keywords);
+  };
+  
+  const isCreateJobDisabled = () => {
+    return (
+      !name ||
+      selectedChannels.length === 0 ||
+      (!sameLanguageCaptions && (!keywords || keywords.length === 0))
+    );
+  };
+  
   const handleSave = () => {
-    if (name && selectedChannels) {
+    if (name && selectedChannels && selectedDate && startTime && endTime) {
+      const startDateTime = selectedDate
+        .set('hour', startTime.hour())
+        .set('minute', startTime.minute())
+        .toDate();
+      const endDateTime = selectedDate
+        .set('hour', endTime.hour())
+        .set('minute', endTime.minute())
+        .toDate();
+
+      const operations: string[] = [];
+
+      if (keywords && keywords.length > 0) {
+        operations.push('DetectKeywords');
+      }
+
+      if (sameLanguageCaptions) {
+        operations.push('CreateClosedCaptions');
+      }
+
+      if (translatedLanguages && translatedLanguages.length > 0) {
+        operations.push('TranslateTranscription');
+      }
+
       const jobData: AiJobRequest = {
-        // Visibility: visibility,
         Name: name,
-        Operations: ["DetectKeywords"],
-        ChannelIds: [1, 2, 3], //todo use selectedChannels
-        BroadcastStartTime: new Date(2025, 2, 3, 20, 0, 0),
-        BroadcastEndTime: new Date(2025, 2, 3, 22, 0, 0),
+        Operations: operations,
+        ChannelIds: selectedChannels, // Use selectedChannels from state
+        BroadcastStartTime: startDateTime,
+        BroadcastEndTime: endDateTime,
         RequestRule: {
           Recurrence: RuleRecurrenceEnum.Once,
-          Days: 0b1111111
+          Days: 0b1111111,
         },
-        Keywords: ["Biden", "Trump", "Israel"],
-        KeywordsLangauges: ["English"],
-        NotificationIds: []
-      }
+        Keywords: keywords, // Use keywords from state (string array)
+        KeywordsLangauges: [keywordLanguage], // Use keywordLanguage from state
+        NotificationIds: []//alertDestinations, // Use alertDestinations from state
+      };
 
       onJobAdded?.(jobData);
       onClose();
     } else {
-      alert("Please fill in all fields.");
+      alert('Please fill in all fields.');
     }
   };
 
@@ -121,13 +179,6 @@ const AddNewJobComponent: React.FC<AddNewJobComponentProps> = ({ open, onClose, 
         />
 
         <div style={{ display: "flex", alignItems: "center" }}>
-          <FormControl sx={{ marginRight: 2, minWidth: 150 }}>
-            <InputLabel>Visibility</InputLabel>
-            <Select value={visibility} onChange={(e) => setVisibility(e.target.value)} label="Visibility">
-              <MenuItem value="Private">Private</MenuItem>
-              <MenuItem value="Everyone">Everyone</MenuItem>
-            </Select>
-          </FormControl>
           {loadingChannels ? (
             <p>Loading channels...</p>
           ) : errorChannels ? (
@@ -159,32 +210,38 @@ const AddNewJobComponent: React.FC<AddNewJobComponentProps> = ({ open, onClose, 
               </Select>
             </FormControl>
           )}
+          <FormControl sx={{ marginLeft: 2, minWidth: 150 }}>
+            <InputLabel>Visibility</InputLabel>
+            <Select value={visibility} onChange={(e) => setVisibility(e.target.value)} label="Visibility">
+              <MenuItem value="Private">Private</MenuItem>
+              <MenuItem value="Everyone">Everyone</MenuItem>
+            </Select>
+          </FormControl>
         </div>
 
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DatePicker />
-        </LocalizationProvider>
-        {/* <div style={{ display: "flex", alignItems: "center", marginTop: '16px' }}>
+          <div style={{ display: "flex", alignItems: "center", marginTop: '16px' }}>
             <DatePicker
               label="Select Date"
               value={selectedDate}
               onChange={(newValue) => setSelectedDate(newValue)}
-              renderInput={(params) => <TextField {...params} sx={{ marginRight: 2, minWidth: 150 }} />}
+            // renderInput={(params) => <TextField {...params} sx={{ marginRight: 2, minWidth: 150 }} />}
             />
             <TimePicker
               label="Start Time"
               value={startTime}
+              sx={{ marginRight: 2, marginLeft: 2 }}
               onChange={(newValue) => setStartTime(newValue)}
-              renderInput={(params) => <TextField {...params} sx={{ marginRight: 2, minWidth: 150 }} />}
+            // renderInput={(params) => <TextField {...params} sx={{ marginRight: 2, minWidth: 150 }} />}
             />
             <TimePicker
               label="End Time"
               value={endTime}
               onChange={(newValue) => setEndTime(newValue)}
-              renderInput={(params) => <TextField {...params} sx={{ minWidth: 150 }} />}
+            // renderInput={(params) => <TextField {...params} sx={{ minWidth: 150 }} />}
             />
           </div>
-        </LocalizationProvider> */}
+        </LocalizationProvider>
 
         <FormControlLabel
           control={<Checkbox checked={repeat} onChange={() => setRepeat(!repeat)} />}
@@ -212,20 +269,97 @@ const AddNewJobComponent: React.FC<AddNewJobComponentProps> = ({ open, onClose, 
           </div>
         )}
 
-        <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)}>
-          <Tab label="Keyword Detection Alerts" />
-          <Tab label="Closed Captions" />
+        <Tabs value={activeTab}
+          onChange={(_, newValue) => setActiveTab(newValue)}
+          sx={{ height: '310' }} >
+          <Tab label="Keyword Detection Alerts" sx={{ textTransform: 'none' }}/>
+          <Tab label="Closed Captions" sx={{ textTransform: 'none' }}/>
         </Tabs>
+
+        {activeTab === 0 && (
+          <div style={{ height: '310px', overflowY: 'auto', backgroundColor: 'whitesmoke' }}>
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Select the language of your keywords</InputLabel>
+              <Select
+                value={keywordLanguage}
+                onChange={(e) => setKeywordLanguage(e.target.value)}
+                label="Select the language of your keywords" >
+                <MenuItem value="English">English</MenuItem>
+                <MenuItem value="Spanish">Spanish</MenuItem>
+                {/* Add more languages as needed */}
+              </Select>
+              <FormHelperText>Select the language of your keywords</FormHelperText>
+            </FormControl>
+
+            <TextField
+              label="Enter the keywords to search for, separated by commas"
+              value={keywords.join(', ')} // Display keywords as comma-separated string
+              onChange={handleKeywordsChange} // Use the new handler
+              fullWidth
+              margin="normal"
+              helperText="Enter keywords, separated by commas"
+            />
+
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Select Alert Destinations</InputLabel>
+              <Select
+                multiple
+                value={alertDestinations}
+                onChange={(e) => setAlertDestinations(e.target.value as number[])}
+                input={<OutlinedInput label="Select Alert Destinations" />}
+                renderValue={(selected) => selected.join(", ")}
+                MenuProps={MenuProps}
+                label="Select Alert Destinations"
+              >
+                {channels.map((channel) => (
+                  <MenuItem key={channel.id} value={channel.id}>
+                    <Checkbox checked={alertDestinations.includes(channel.id)} />
+                    <ListItemText primary={channel.displayName} />
+                  </MenuItem>
+                ))}
+              </Select>
+              <FormHelperText>Select the destinations for alert notifications</FormHelperText>
+            </FormControl>
+          </div>
+        )}
+
+        {activeTab === 1 && (
+          <div style={{ height: '310px', overflowY: 'auto', backgroundColor: 'whitesmoke' }}>
+            <FormControlLabel
+              control={<Checkbox checked={sameLanguageCaptions} onChange={() => setSameLanguageCaptions(!sameLanguageCaptions)} />}
+              label="Generate closed captions in the same language as their audio"
+            />
+
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Select translated languages</InputLabel>
+              <Select
+                multiple
+                value={translatedLanguages}
+                onChange={(e) => setTranslatedLanguages(e.target.value as string[])}
+                input={<OutlinedInput label="Select translated languages" />}
+                renderValue={(selected) => selected.join(", ")}
+                MenuProps={MenuProps}
+                label="Select translated languages"
+                disabled={!sameLanguageCaptions} >
+                <MenuItem value="English">English</MenuItem>
+                <MenuItem value="Spanish">Spanish</MenuItem>
+                {/* Add more languages as needed */}
+              </Select>
+              <FormHelperText>Select the languages to translate closed captions to</FormHelperText>
+            </FormControl>
+          </div>
+        )}
+
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} color="secondary">
           Cancel
         </Button>
-        <Button onClick={handleSave} color="primary" variant="contained">
+        <Button onClick={handleSave} color="primary" variant="contained" disabled={isCreateJobDisabled()}>
           Create Job
         </Button>
       </DialogActions>
-    </Dialog>
+    </Dialog >
   );
 };
 
