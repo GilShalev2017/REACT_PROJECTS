@@ -8,19 +8,11 @@ import {
   MenuItem,
   Select,
   styled,
-  DialogProps,
-  Box,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  FormControlLabel,
-  Switch,
-  SelectChangeEvent
 } from "@mui/material";
 import AddNewJobComponent from "../components/AddNewJobComponent";
 import "./JobStatus.css";
 import { AiJobRequest, Channel, JobRequestFilter } from "../models/Job";
-
+import { format } from "date-fns";
 
 const statuses = [
   { text: "Pending", selected: false },
@@ -31,28 +23,102 @@ const statuses = [
   { text: "Stopped", selected: false },
 ];
 
-// const WideDialog = styled(Dialog)(({ theme }) => ({
-//   '& .MuiDialog-paper': {
-//     width: '180%',
-//     maxWidth: 'none',
-//   },
-// }));
+// Styled component for the job name container
+const JobNameContainer = styled('div')({
+  width: '100%',
+  '& .job-name-grid': {
+    display: 'grid',
+    gridTemplateRows: 'min-content auto min-content min-content auto min-content',
+    height: '100%',
+    width: '100%',
+    padding: '5px 20px',
+  },
+  '& .ott-no-wrap': {
+    whiteSpace: 'nowrap',
+  },
+  '& .ott-h2-fnt': {
+    fontSize: '1.5rem', // Adjust as needed
+    fontWeight: 'bold', // Or your specific font weight
+  },
+  '& .ott-h4-fnt': {
+    fontSize: '1rem', // Adjust as needed
+  },
+  '& .ott-color-30': {
+    color: 'rgba(0, 0, 0, 0.3)', // Or your specific color
+  },
+  '& .ott-body-35-fnt': {
+    fontSize: '0.875rem', // Adjust as needed
+    fontStyle: 'italic',
+    lineHeight: '12px',
+    color: 'rgba(0, 0, 0, 0.3)',
+  },
+});
+
+const DateCellContainer = styled('div')({
+  padding: '10px 20px',
+  textAlign: 'center',
+});
+
+interface DateCellProps {
+  job: AiJobRequest;
+}
+
+const DateCell = ({ job }: DateCellProps) => {
+  const isItToday = (d: Date | undefined | null): boolean => {
+    if (!d || !(d instanceof Date) || isNaN(d.getTime())) return false; // Added checks
+
+    const today = new Date();
+    return (
+      today.getFullYear() === d.getFullYear() &&
+      today.getMonth() === d.getMonth() &&
+      today.getDate() === d.getDate()
+    );
+  };
+
+  if (!job.NextScheduledTime) {
+    return <TableCell sx={{ borderRight: '1px solid #ddd' }}>N/A</TableCell>;
+  }
+
+  const isToday = isItToday(job.NextScheduledTime);
+
+  return (
+    <TableCell sx={{ borderRight: '1px solid #ddd', width: '7%' }}>
+      <DateCellContainer>
+        <div
+          className={isToday ? '' : 'ott-color-1000'}
+          style={{ fontSize: '14px', fontWeight: 400, lineHeight: '12px', marginBottom: '-3px' }}
+        >
+          {job.NextScheduledTime && format(job.NextScheduledTime, 'MMM')}
+        </div>
+        <div
+          className={isToday ? '' : 'ott-color-1000'}
+          style={{ fontSize: '48px', fontWeight: 600, lineHeight: '48px' }}
+        >
+          {job.NextScheduledTime && format(job.NextScheduledTime, 'd')}
+        </div>
+        <div
+          className={isToday ? '' : 'ott-color-1000'}
+          style={{ fontSize: '14px', fontWeight: 400, lineHeight: '12px', marginTop: '0px' }}
+        >
+          {job.NextScheduledTime && format(job.NextScheduledTime, 'EEE')}
+        </div>
+      </DateCellContainer>
+    </TableCell>
+  );
+};
 
 const JobDashboardPage: React.FC = () => {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [jobs, setJobs] = useState<AiJobRequest[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [selectedTimeRangeFilter, setSelectedTimeRangeFilter] = useState<string | null>(null);
+  const [selectedTimeRangeFilter, setSelectedTimeRangeFilter] = useState<string | null>('lmonth');
   const [filterFromDate, setFilterFromDate] = useState<Date | undefined>();
   const [filterToDate, setFilterToDate] = useState<Date | undefined>();
-  const [selectedChannels, setSelectedChannels] = useState<number[]>([]);
+  // const [selectedChannels, setSelectedChannels] = useState<number[]>([]);
+  const [selectedChannels, setSelectedChannels] = useState<number[]>([-1]); // Default to placeholder
   const [openNewJobDialog, setOpenNewJobDialog] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [selectedSortBy, setSelectedSortBy] = useState<number>(0);
-
-  // const [fullWidth, setFullWidth] = React.useState(true);
-  // const [maxWidth, setMaxWidth] = React.useState<DialogProps['maxWidth']>('lg');
-  // const [open, setOpen] = React.useState(false);
 
   const filterByCategory = (status: { text: string }) => {
     setSelectedStatus(status.text);
@@ -73,20 +139,40 @@ const JobDashboardPage: React.FC = () => {
   }
 
   const fetchJobs = () => {
-    if (!filterFromDate || !filterToDate) return; 
+    if (!filterFromDate || !filterToDate) return;
 
+    //remove the placeholder channel
+    const realChannels = selectedChannels.filter(channel => channel !== -1);
     const filter: JobRequestFilter = {
       Start: filterFromDate,
       End: filterToDate,
-      ChannelIds: selectedChannels,
+      ChannelIds: realChannels,
       SortDirection: selectedSortBy,
     };
 
     setLoading(true);
     getFilteredJobRequests(filter)
-      .then((data) => setJobs(data))
+      .then((data) => {
+        // Fill job.Channels for every fetched job
+        const updatedJobs = data.map(job => {
+          if (job.ChannelIds) {
+            job.Channels = job.ChannelIds
+              .map(chnl => getChannelById(chnl))
+              .filter((ch): ch is Channel => ch != null);
+          } else {
+            job.Channels = undefined;
+          }
+          return job;
+        });
+        setJobs(updatedJobs);
+        setJobs(data)
+      })
       .catch((error) => console.error("Failed to load jobs:", error))
       .finally(() => setLoading(false));
+  };
+
+  const getChannelById = (chnl_id: number): Channel | undefined => {
+    return channels.find(chnl => chnl.id === chnl_id);
   };
 
   useEffect(() => {
@@ -161,32 +247,13 @@ const JobDashboardPage: React.FC = () => {
 
   const JobStatusCell = ({ job }: { job: { Status: string } }) => {
     return (
-      <TableCell>
+      <TableCell sx={{ borderRight: '1px solid #ddd', width: '10%' }}>
         <span className={`category ${getStatusClass(job.Status)}`}>
           {job.Status}
         </span>
       </TableCell>
     );
   };
-
-  // const handleClickOpen = () => {
-  //   setOpen(true);
-  // };
-
-  // const handleClose = () => {
-  //   setOpen(false);
-  // };
-
-  // const handleMaxWidthChange = (event: SelectChangeEvent<typeof maxWidth>) => {
-  //   setMaxWidth(
-  //     // @ts-expect-error autofill of arbitrary value is not handled.
-  //     event.target.value,
-  //   );
-  // };
-
-  // const handleFullWidthChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-  //   setFullWidth(event.target.checked);
-  // };
 
   return (
     <Paper>
@@ -200,31 +267,26 @@ const JobDashboardPage: React.FC = () => {
           <Button variant="contained" color="primary" onClick={handleOpenNewJobDialog}>
             New Job
           </Button>
-          {/* <Button variant="outlined" onClick={handleClickOpen}>
-            Open max-width dialog
-          </Button> */}
         </div>
       </Toolbar>
 
-
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-
-        <div className="category-container">
+        <div className="category-container" style={{ display: 'flex', alignItems: 'center' }}>
           {statuses.map((status) => (
             <div
               key={status.text}
               className={`ott-background-100 ott-color-10 category ${getStatusClass(status.text)}`}
-              onClick={() => filterByCategory(status)}
-            >
+              onClick={() => filterByCategory(status)} >
               {status.text}
             </div>
           ))}
         </div>
 
-        <div style={{ display: "flex", alignItems: "center" }}>
+        <div style={{ display: "flex", alignItems: "center" }} >
           <FormControl margin="normal" sx={{ marginRight: 2, minWidth: 150 }}>
             <InputLabel>Filter by Time-Range</InputLabel>
-            <Select value={selectedTimeRangeFilter} onChange={(e) => setSelectedTimeRangeFilter(e.target.value)} label="Filter by Time-Range">
+            <Select value={selectedTimeRangeFilter} onChange={(e) => setSelectedTimeRangeFilter(e.target.value)}
+              label="Filter by Time-Range" sx={{ height: '35px' }}>
               <MenuItem value="today">Today</MenuItem>
               <MenuItem value="lweek">Last week</MenuItem>
               <MenuItem value="l2week">Last two weeks</MenuItem>
@@ -232,9 +294,46 @@ const JobDashboardPage: React.FC = () => {
             </Select>
           </FormControl>
 
+          {/* <FormControl margin="normal" sx={{ marginRight: 2, minWidth: 150 }}>
+            <InputLabel>Filter by Channel</InputLabel>
+            <Select multiple value={selectedChannels} onChange={(e) => setSelectedChannels(e.target.value as number[])}
+              label="Filter by Channel" sx={{ height: '40px' }}>
+              <MenuItem key='-1' value='-1'>
+                {'No channel filter'}
+              </MenuItem>
+              {channels.map((channel) => (
+                <MenuItem key={channel.id} value={channel.id}>
+                  {channel.displayName}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl> */}
+
           <FormControl margin="normal" sx={{ marginRight: 2, minWidth: 150 }}>
             <InputLabel>Filter by Channel</InputLabel>
-            <Select multiple value={selectedChannels} onChange={(e) => setSelectedChannels(e.target.value as number[])} label="Filter by Channel">
+            <Select
+              multiple
+              value={selectedChannels}
+              onChange={(e) => setSelectedChannels(e.target.value as number[])}
+              label="Filter by Channel"
+              sx={{ height: '40px' }}
+              renderValue={(selected) => {
+                if (selected.length === 1 && selected[0] === -1) {
+                  return "No channel filter";
+                }
+                return selected
+                  .filter((value) => value !== -1)
+                  .map((value) => {
+                    const channel = channels.find((c) => c.id === value);
+                    return channel ? channel.displayName : null;
+                  })
+                  .filter(Boolean)
+                  .join(', ');
+              }}
+            >
+              <MenuItem key="-1" value={-1}>
+                {"No channel filter"}
+              </MenuItem>
               {channels.map((channel) => (
                 <MenuItem key={channel.id} value={channel.id}>
                   {channel.displayName}
@@ -245,7 +344,8 @@ const JobDashboardPage: React.FC = () => {
 
           <FormControl margin="normal" sx={{ minWidth: 120 }}>
             <InputLabel>Sort By</InputLabel>
-            <Select value={selectedSortBy} onChange={(e) => setSelectedSortBy(e.target.value as number)} label="Sort By">
+            <Select value={selectedSortBy} onChange={(e) => setSelectedSortBy(e.target.value as number)}
+              label="Sort By" sx={{ height: '40px' }}>
               <MenuItem value="0">Newest</MenuItem>
               <MenuItem value="1">Oldest</MenuItem>
             </Select>
@@ -257,30 +357,98 @@ const JobDashboardPage: React.FC = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Created At</TableCell>
-              <TableCell>Date</TableCell>
-              <TableCell>Actions</TableCell>
+              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold' }}>Name</TableCell>
+              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold' }}>Status</TableCell>
+              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold' }}>Date</TableCell>
+              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold' }}>Channels</TableCell>
+              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={4} align="center">
+                <TableCell colSpan={5} align="center">
                   Loading...
                 </TableCell>
               </TableRow>
             ) : (
               jobs.map((job) => (
                 <TableRow key={job.Id}>
-                  <TableCell>{job.Name}</TableCell>
-                  {/* <TableCell>{job.Status}</TableCell> */}
-                  <JobStatusCell job={{ Status: job.Status! }} />
-                  <TableCell>{job.CreatedAt}</TableCell>
-                  <TableCell>
-                    {job.NextScheduledTime ? new Date(job.NextScheduledTime).toDateString() : "N/A"}
+                  <TableCell sx={{ width: '35%', borderRight: '1px solid #ddd' }}>
+                    <JobNameContainer>
+                      <div className="job-name-grid" >
+                        <div className="ott-no-wrap ott-h2-fnt">{job.Name}</div>
+                        <div></div>
+                        {job.Operations?.length && (
+                          <div className="ott-h4-fnt">
+                            <span className="ott-color-30" style={{ marginRight: '5px' }}>
+                              Operations:
+                            </span>
+                            {job.Operations.map((operation, index, array) => (
+                              <span key={index} style={{ fontStyle: 'italic' }}>
+                                {operation}
+                                {index < array.length - 1 && <span>,</span>}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        {job.Keywords?.length && (
+                          <div className="ott-h4-fnt">
+                            <span className="ott-color-30" style={{ marginRight: '5px' }}>
+                              Searched words:
+                            </span>
+                            {job.Keywords.map((word, index, array) => (
+                              <span key={index} style={{ fontStyle: 'italic' }}>
+                                {word}
+                                {index < array.length - 1 && <span>,</span>}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        {job.Notifications?.length && (
+                          <div className="ott-h4-fnt">
+                            <span className="ott-color-30" style={{ marginRight: '5px' }}>
+                              Notifications:
+                            </span>
+                            {job.Notifications.map((notification, index, array) => (
+                              <span key={index} style={{ fontStyle: 'italic' }}>
+                                {notification}
+                                {index < array.length - 1 && <span>,</span>}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        <div></div>
+                        <div className="ott-body-35-fnt ott-no-wrap ott-color-30">
+                          <span>Created on </span>
+                          <span style={{ marginLeft: '5px' }}>
+                            {job.CreatedAt && format(new Date(job.CreatedAt), 'MM/dd/yyyy')}
+                          </span>
+                          <span style={{ marginLeft: '5px' }}>
+                            {job.CreatedAt && format(new Date(job.CreatedAt), 'HH:mm')}
+                          </span>
+                          <span style={{ marginLeft: '5px', marginRight: '5px' }}>by</span>
+                          <span>{job.CreatedBy}</span>
+                        </div>
+                      </div>
+                    </JobNameContainer>
                   </TableCell>
+                  <JobStatusCell job={{ Status: job.Status! }} />
+                  {/* <TableCell sx={{ borderRight: '1px solid #ddd' }}>
+                    {job.NextScheduledTime ? new Date(job.NextScheduledTime).toDateString() : "N/A"}
+                  </TableCell> */}
+                  <DateCell job={job} /> 
+                  <TableCell sx={{ borderRight: '1px solid #ddd' }}>
+                    {job.Channels?.map((channel) => (
+                      <div
+                        key={channel.id} // Add a unique key for each element in the map
+                        style={{ fontSize: '14px', fontWeight: 400 }}
+                      >
+                        {channel.displayName}
+                      </div>
+                    ))}
+                  </TableCell>
+
                   <TableCell>
                     <Button variant="contained" color="primary">
                       View
@@ -292,7 +460,7 @@ const JobDashboardPage: React.FC = () => {
           </TableBody>
         </Table>
       </TableContainer>
-      
+
       <Dialog open={openNewJobDialog} onClose={handleCloseNewJobDialog}
         fullWidth={true}
         maxWidth={'lg'}>
@@ -300,7 +468,7 @@ const JobDashboardPage: React.FC = () => {
         <AddNewJobComponent open={openNewJobDialog} onClose={handleCloseNewJobDialog} onJobAdded={handleSaveNewJob} />
       </Dialog>
 
-    </Paper>
+    </Paper >
   );
 };
 
