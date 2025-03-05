@@ -8,11 +8,17 @@ import {
   MenuItem,
   Select,
   styled,
+  IconButton,
+  Avatar,
 } from "@mui/material";
 import AddNewJobComponent from "../components/AddNewJobComponent";
 import "./JobStatus.css";
 import { AiJobRequest, Channel, JobRequestFilter } from "../models/Job";
 import { format } from "date-fns";
+import PauseIcon from '@mui/icons-material/Pause';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import StopIcon from '@mui/icons-material/Stop';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const statuses = [
   { text: "Pending", selected: false },
@@ -31,7 +37,7 @@ const JobNameContainer = styled('div')({
     gridTemplateRows: 'min-content auto min-content min-content auto min-content',
     height: '100%',
     width: '100%',
-    padding: '5px 20px',
+    padding: '1px 20px',
   },
   '& .ott-no-wrap': {
     whiteSpace: 'nowrap',
@@ -106,6 +112,173 @@ const DateCell = ({ job }: DateCellProps) => {
     </TableCell>
   );
 };
+
+const NextScheduledTimeCellContainer = styled('div')({
+  textAlign: 'center',
+  padding: '0px 50px',
+  width: '5%',
+});
+
+const NextScheduledTimeContent = styled('div')({
+  borderWidth: '5px',
+  borderStyle: 'solid',
+  borderRadius: '100px',
+  padding: '5px 10px',
+  display: 'inline-block',
+  width: '240px',
+  borderColor: 'rgba(0, 0, 0, 0.1)',
+});
+
+interface NextScheduledTimeCellProps {
+  job: AiJobRequest;
+}
+
+const NextScheduledTimeCell = ({ job }: NextScheduledTimeCellProps) => {
+  const checkRecurrenceDay = (recurrenceDays: number, day: number) => {
+    let i = 1;
+    i = i << day;
+    return (recurrenceDays & i) > 0;
+  };
+
+  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  if (!job.RequestRule || !job.RequestRule.Recurrence) {
+    return <TableCell sx={{ borderRight: '1px solid #ddd' }}>N/A</TableCell>;
+  }
+
+  return (
+    <TableCell sx={{ borderRight: '1px solid #ddd' }}>
+      <NextScheduledTimeCellContainer>
+        <NextScheduledTimeContent>
+          <div className="ott-h4-fnt ott-no-wrap" style={{ fontStyle: 'italic', lineHeight: '12px' }}>
+            <span>{job.RequestRule.Recurrence.Value}</span>
+          </div>
+          <div className="ott-h4-fnt-bold ott-no-wrap">
+            {job.BroadcastStartTime && format(job.BroadcastStartTime, 'HH:mm')} -{' '}
+            {job.BroadcastEndTime && format(job.BroadcastEndTime, 'HH:mm')}
+          </div>
+          <div className="ott-body-35-fnt ott-no-wrap ott-color-30" style={{ fontStyle: 'italic', lineHeight: '12px' }}>
+            {job.RequestRule.Days &&
+              weekDays.map((day, index) => (
+                <span
+                  key={index}
+                  className={job.RequestRule && job.RequestRule.Days && checkRecurrenceDay(job.RequestRule.Days, index) ? 'ott-color-20' : ''} // Added null check
+                  style={{ marginLeft: '5px' }}
+                >
+                  {day}
+                </span>
+              ))}
+            <span style={{ marginLeft: '5px' }}>&nbsp;</span>
+          </div>
+        </NextScheduledTimeContent>
+      </NextScheduledTimeCellContainer>
+    </TableCell>
+  );
+};
+
+const ActionsCellContainer = styled('div')({
+  textAlign: 'center',
+  width: '8%',
+});
+
+const ActionButtonsContainer = styled('div')({
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  gap: '10px',
+});
+
+interface ActionsCellProps {
+  job: AiJobRequest;
+  pauseJob: (job: AiJobRequest) => void;
+  resumeJob: (job: AiJobRequest) => void;
+  stopJob: (job: AiJobRequest) => void;
+  deleteJob: (job: AiJobRequest) => void;
+  canPause: (job: AiJobRequest) => boolean;
+  canResume: (job: AiJobRequest) => boolean;
+  canStop: (job: AiJobRequest) => boolean;
+  canDelete: (job: AiJobRequest) => boolean;
+}
+
+const ActionsCell = ({ job, pauseJob, resumeJob, stopJob, deleteJob, canPause, canResume, canStop, canDelete }: ActionsCellProps) => {
+  return (
+    <TableCell>
+      <ActionsCellContainer>
+        <ActionButtonsContainer>
+          {canPause(job) && (
+            <Button
+              variant="contained"
+              color="warning"
+              size="small"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                pauseJob(job);
+              }}
+            >
+              <PauseIcon />
+            </Button>
+          )}
+          {canResume(job) && (
+            <Button variant="contained" color="primary" size="small" onClick={() => resumeJob(job)}>
+              <PlayArrowIcon />
+            </Button>
+          )}
+          {canStop(job) && (
+            <Button variant="contained" color="warning" size="small" onClick={() => stopJob(job)}>
+              <StopIcon />
+            </Button>
+          )}
+          <Button
+            variant="contained"
+            color="secondary"
+            size="small"
+            onClick={() => deleteJob(job)}
+            disabled={!canDelete(job)}
+          >
+            <DeleteIcon />
+          </Button>
+        </ActionButtonsContainer>
+      </ActionsCellContainer>
+    </TableCell>
+  );
+};
+
+function pauseJob(job: AiJobRequest): void {
+  console.log("Pause Job:", job); // Replace with your actual implementation
+}
+
+function resumeJob(job: AiJobRequest): void {
+  console.log("Resume Job:", job); // Replace with your actual implementation
+}
+
+function stopJob(job: AiJobRequest): void {
+  console.log("Stop Job:", job); // Replace with your actual implementation
+}
+
+function deleteJob(job: AiJobRequest): void {
+  console.log("Delete Job:", job); // Replace with your actual implementation
+}
+
+function canResume(job: AiJobRequest): boolean {
+  console.log("Can Resume:", job); // Replace with your actual implementation
+  return true; // Or false based on your logic
+}
+
+function canStop(job: AiJobRequest): boolean {
+  console.log("Can Stop:", job); // Replace with your actual implementation
+  return true; // Or false based on your logic
+}
+
+function canPause(job: AiJobRequest): boolean {
+  console.log("Can Pause:", job); // Replace with your actual implementation
+  return true; // Or false based on your logic
+}
+
+function canDelete(job: AiJobRequest): boolean {
+  console.log("Can Delete:", job); // Replace with your actual implementation
+  return true; // Or false based on your logic
+}
 
 const JobDashboardPage: React.FC = () => {
   const [channels, setChannels] = useState<Channel[]>([]);
@@ -258,7 +431,7 @@ const JobDashboardPage: React.FC = () => {
   return (
     <Paper>
 
-      <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between", backgroundColor: '#f0f0f0' }}>
         <Typography variant="h6">Job Dashboard</Typography>
         <div>
           <Button variant="contained" color="secondary" onClick={fetchJobs} sx={{ marginRight: 1 }}>
@@ -357,11 +530,12 @@ const JobDashboardPage: React.FC = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold' }}>Name</TableCell>
-              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold' }}>Status</TableCell>
-              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold' }}>Date</TableCell>
-              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold' }}>Channels</TableCell>
-              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold' }}>Actions</TableCell>
+              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold',textAlign: 'center' }}>Name</TableCell>
+              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold',textAlign: 'center' }}>Status</TableCell>
+              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold',textAlign: 'center' }}>Date</TableCell>
+              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold',textAlign: 'center' }}>Next Scheduled Time</TableCell>
+              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold',textAlign: 'center' }}>Channels</TableCell>
+              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold',textAlign: 'center' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -437,7 +611,11 @@ const JobDashboardPage: React.FC = () => {
                   {/* <TableCell sx={{ borderRight: '1px solid #ddd' }}>
                     {job.NextScheduledTime ? new Date(job.NextScheduledTime).toDateString() : "N/A"}
                   </TableCell> */}
-                  <DateCell job={job} /> 
+                  <DateCell job={job} />
+                  {/* <TableCell sx={{ borderRight: '1px solid #ddd' }}>
+                    {job.NextScheduledTime ? format(job.NextScheduledTime, 'MM/dd/yyyy HH:mm') : "N/A"} 
+                  </TableCell> */}
+                  <NextScheduledTimeCell job={job} />
                   <TableCell sx={{ borderRight: '1px solid #ddd' }}>
                     {job.Channels?.map((channel) => (
                       <div
@@ -448,11 +626,30 @@ const JobDashboardPage: React.FC = () => {
                       </div>
                     ))}
                   </TableCell>
-
+                  {/* <ActionsCell
+                    job={job}
+                    pauseJob={pauseJob}
+                    resumeJob={resumeJob}
+                    stopJob={stopJob}
+                    deleteJob={deleteJob}
+                    canPause={canPause}
+                    canResume={canResume}
+                    canStop={canStop}
+                    canDelete={canDelete}
+                  /> */}
                   <TableCell>
-                    <Button variant="contained" color="primary">
-                      View
-                    </Button>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <IconButton style={{ backgroundColor: 'red' }} aria-label="pause">
+                        {/* <Avatar sx={{ bgcolor: 'red' }}> */}
+                          <PauseIcon sx={{ color: 'white' }} />
+                        {/* </Avatar> */}
+                      </IconButton>
+                      <IconButton style={{ backgroundColor: 'blue' }} aria-label="delete">
+                        {/* <Avatar sx={{ bgcolor: 'blue' }}> */}
+                          <DeleteIcon sx={{ color: 'white' }} />
+                        {/* </Avatar> */}
+                      </IconButton>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
