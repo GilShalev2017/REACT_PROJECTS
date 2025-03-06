@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import AddNewJobComponent from "../components/AddNewJobComponent";
 import "./JobStatus.css";
-import { AiJobRequest, Channel, JobRequestFilter } from "../models/Job";
+import { AiJobRequest, Channel, JobRequestFilter } from "../models/Models";
 import { format } from "date-fns";
 import PauseIcon from '@mui/icons-material/Pause';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -328,7 +328,7 @@ const JobDashboardPage: React.FC = () => {
   const fetchChannels = () => {
     getChannels()
       .then((data) => setChannels(data))
-      .catch((error) => console.error("Failed to load channels:", error))
+      .catch((error: any) => console.error("Failed to load channels:", error))
   }
 
   const fetchJobs = () => {
@@ -675,3 +675,4 @@ const JobDashboardPage: React.FC = () => {
 };
 
 export default JobDashboardPage;
+

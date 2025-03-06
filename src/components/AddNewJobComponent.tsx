@@ -24,7 +24,7 @@ import {
   FormHelperText,
   Paper,
 } from "@mui/material";
-import { AiJobRequest, Channel, LanguageDm, RuleRecurrenceEnum } from "../models/Job";
+import { AiJobRequest, Channel, LanguageDm, RuleRecurrenceEnum } from "../models/Models";
 import { getChannels, getLanguages } from "../api/jobService";
 import { DatePicker, LocalizationProvider, TimePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';

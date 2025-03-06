@@ -130,3 +130,152 @@ export class LanguageDm {
     ProvidersLanguageCode?: { [providerId: string]: string } = {};
     isTranslated?: boolean;
 }
+
+export class AIClipSourceEnum extends ActEnums {
+    static Proxy = new AIClipSourceEnum("Proxy");
+    static HLS = new AIClipSourceEnum("HLS");
+    static Upload = new AIClipSourceEnum("Upload");
+    constructor(value: string) {
+        super(value);
+    }
+}
+
+export interface AIClipProxyMetadata {
+    ChannelIds?: number[];
+    ChannelDisplayName?: string;
+    From: Date;
+    To: Date;
+    Status?: string;
+    ProxyClipId?: string;
+}
+
+export interface AIClipUploadMetadata {
+    VideoPath: string;
+}
+
+export class ProgressEnum extends ActEnums {
+    static New = new ProgressEnum("New");
+    static Processing = new ProgressEnum("Processing");
+    static Done = new ProgressEnum("Done");
+    static ErrorProcessing = new ProgressEnum("ErrorProcessing");
+    static NotEnoughCredit = new ProgressEnum("NotEnoughCredit");
+    constructor(value: string) {
+        super(value);
+    }
+}
+
+export interface KeyValuePair {
+    key: string;
+    value: string;
+}
+
+export interface TimeRange {
+    StartInSeconds: number;
+    EndInSeconds: number;
+    Tooltip?:string;
+    Name?:string;
+}
+
+export interface TimeCodedItem {
+    ImageUrl?: string;
+    TimeRanges: TimeRange[];
+    Name: string;
+    Description?: string;
+    AppearancePercentage?: number;
+    TotalSeconds: number;
+    isSelected: boolean;
+    Tooltip?: string;
+}
+
+export interface Transcript {
+    [x: string]: any
+    Text: string,
+    StartInSeconds: number,
+    EndInSeconds: number,
+    isActive?: boolean,
+    isPlaying?: boolean
+}
+
+export interface EmotionInstance {
+    Confidence: number;
+    AdjustedStart: number;
+    AdjustedEnd: number;
+    Start: number;
+    End: number;
+}
+
+export interface Emotion {
+    Id: number;
+    Type?: string; //"Anger" | "Fear" | "Joy" | "Neutral" | "Sad" | null;
+    Instances?: EmotionInstance[] | null;
+}
+
+export interface InsightResult {
+    TimeCodedContentWithSearchData?: Transcript[]; //for search
+    TimeCodedContent?: Transcript[];
+    emotions?: Emotion[];
+    Emotions?: Emotion[];
+    TimeCodedItems?: TimeCodedItem[];
+    //BulkData: string | null = null;
+    AiProviderId: string | null;
+    Cost?: number;
+    Language: string;
+    Prompt?: string;
+}
+
+export interface TranslateRequest {
+    targetLanguage: string;
+    Progress?: ProgressEnum;
+}
+
+export interface InsightRequest {
+    Id?: string;
+    InsightType: string;
+    UserDefinedPrompt?: string;
+    DependsOnInsightType?: string;
+    Progress?: ProgressEnum;
+    Status?: string;
+    Results?: InsightResult[];
+    StatusDetails?: string;
+    TranslateRequests?: TranslateRequest[];
+}
+
+export interface AIClipDm {
+    Id?: string;
+    InternalId: string; // encoded parh to media file
+    Visibility?: VisibilityEnum;
+    selectedVisibility: string;
+    ClipUrl?: string;
+    Name: string;
+    Description?: string;
+    AIClipSource: AIClipSourceEnum;
+    ProxyMetadata?: AIClipProxyMetadata;
+    ProxyFrom: Date | string;
+    ProxyTo: Date | string;
+    ProxyChannelDisplayName: string;
+    UploadMetadata?: AIClipUploadMetadata;
+    VideoProgress: ProgressEnum;
+    AudioProgress: ProgressEnum;
+    InsightsProgress: ProgressEnum;
+    VideoSizeB: number;
+    VideoDurationSec: number;
+    AudioDurationSec: number;
+    VideoWidth: number;
+    VideoHeight: number;
+    VideoBitrate: number;
+    AudioLanguage: string;
+    VideoFilePath: string;
+    AudioFilePath: string;
+    Status: string;
+    UserCategory: KeyValuePair[];
+    PublishUrl?: string;
+    Insights: InsightRequest[];
+    LastUpdatedBy?: string;
+    LastUpdateDate?: string;
+    CreatedDate?: Date;
+    MaxAccessRight?: string;
+    UserTags?: string[];
+    CreatedBy?: string;
+
+    selected: boolean ;
+}
