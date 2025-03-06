@@ -7,6 +7,7 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { AIClipDm } from '../models/Models';
 import Spinner from 'react-spinner-material';
+import './ClipCard.css';
 
 const ClipCard: React.FC<{ clip: AIClipDm }> = ({ clip }) => {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
@@ -27,7 +28,6 @@ const ClipCard: React.FC<{ clip: AIClipDm }> = ({ clip }) => {
     const baseMediaUrl = "/v2/ActIntelligenceService/intelligence/mediadelivery";
     const positionalTime = 0;
     return `${baseMediaUrl}/thumbnail/${clip.Id}?second=${positionalTime}`;
-    //return `<span class="math-inline">\{baseMediaUrl\}/thumbnail/</span>{clip.Id}?second=${positionalTime}`;
   };
 
   const convertSecondsToMinutes = (seconds: number): string => {

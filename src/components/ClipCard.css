@@ -1,0 +1,24 @@
+.video-clip {
+    width: 315px;
+    height: 293px;
+    margin: 8px;
+    position: relative;
+    display: inline-block;
+    vertical-align: top;
+    cursor: pointer;
+    overflow: hidden;
+    transition: box-shadow 0.1s ease-in-out;
+    border: 2px solid #D6DBF8;
+    border-radius: 8px;
+    transition: transform 0.3s ease-in-out;
+}
+
+.video-clip:hover {
+    border: 2px solid #613EB0;
+    box-shadow: 0px 5px 5px -3px rgba(0, 0, 0, 0.2), 0px 8px 10px 1px rgba(0, 0, 0, 0.14), 0px 3px 14px 2px rgba(0, 0, 0, 0.12);
+    transform: scale(1.04);
+}
+
+.clip-selected .thumbnail-checkbox {
+    display: block;
+}
