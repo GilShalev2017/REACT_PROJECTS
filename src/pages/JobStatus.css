@@ -20,6 +20,15 @@
                 0px 1px 10px 0px rgb(0 0 0 / 12%);
 }
 
+.selected-category {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    border: 2px solid;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
 .status-in-progress {
     color: orange !important;
 }

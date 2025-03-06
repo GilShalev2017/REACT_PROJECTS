@@ -20,7 +20,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-const statuses = [
+const statusesData = [
   { text: "Pending", selected: false },
   { text: "In Progress", selected: false },
   { text: "Completed", selected: false },
@@ -283,19 +283,39 @@ function canDelete(job: AiJobRequest): boolean {
 const JobDashboardPage: React.FC = () => {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [jobs, setJobs] = useState<AiJobRequest[]>([]);
+  const [filteredJobs, setFilteredJobs] = useState<AiJobRequest[]>([]);
+  const [statuses, setStatuses] = useState([...statusesData]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedTimeRangeFilter, setSelectedTimeRangeFilter] = useState<string | null>('lmonth');
   const [filterFromDate, setFilterFromDate] = useState<Date | undefined>();
   const [filterToDate, setFilterToDate] = useState<Date | undefined>();
-  // const [selectedChannels, setSelectedChannels] = useState<number[]>([]);
+
   const [selectedChannels, setSelectedChannels] = useState<number[]>([-1]); // Default to placeholder
   const [openNewJobDialog, setOpenNewJobDialog] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+  //const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [selectedSortBy, setSelectedSortBy] = useState<number>(0);
 
-  const filterByCategory = (status: { text: string }) => {
-    setSelectedStatus(status.text);
+  const filterByCategory = (statusToToggle: { text: string }) => {
+    setStatuses((prevStatuses) => {
+      return prevStatuses.map((s) => ({
+        ...s,
+        selected: s.text === statusToToggle.text ? !s.selected : false,
+      }));
+    });
   };
+
+  const applyFilters = (): void => {
+    const selectedStatuses = statuses.filter((status) => status.selected).map((status) => status.text);
+    const curFilteredJobs = selectedStatuses.length
+      ? jobs.filter((job) => selectedStatuses.includes(job.Status!))
+      : jobs;
+
+    setFilteredJobs(curFilteredJobs);
+  };
+
+  useEffect(() => { 
+    applyFilters();
+  }, [statuses]); 
 
   useEffect(() => {
     const currentDate = new Date();
@@ -338,6 +358,7 @@ const JobDashboardPage: React.FC = () => {
           return job;
         });
         setJobs(updatedJobs);
+        setFilteredJobs(updatedJobs);
         setJobs(data)
       })
       .catch((error) => console.error("Failed to load jobs:", error))
@@ -444,11 +465,12 @@ const JobDashboardPage: React.FC = () => {
       </Toolbar>
 
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-        <div className="category-container" style={{ display: 'flex', alignItems: 'center' }}>
+        <div className="category-container"
+          style={{ display: 'flex', alignItems: 'center' }}>
           {statuses.map((status) => (
             <div
               key={status.text}
-              className={`ott-background-100 ott-color-10 category ${getStatusClass(status.text)}`}
+              className={`ott-background-100 ott-color-10 category ${status.selected ? 'selected-category' : ''} ${getStatusClass(status.text)}`}
               onClick={() => filterByCategory(status)} >
               {status.text}
             </div>
@@ -530,12 +552,12 @@ const JobDashboardPage: React.FC = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold',textAlign: 'center' }}>Name</TableCell>
-              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold',textAlign: 'center' }}>Status</TableCell>
-              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold',textAlign: 'center' }}>Date</TableCell>
-              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold',textAlign: 'center' }}>Next Scheduled Time</TableCell>
-              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold',textAlign: 'center' }}>Channels</TableCell>
-              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold',textAlign: 'center' }}>Actions</TableCell>
+              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold', textAlign: 'center' }}>Name</TableCell>
+              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold', textAlign: 'center' }}>Status</TableCell>
+              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold', textAlign: 'center' }}>Date</TableCell>
+              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold', textAlign: 'center' }}>Next Scheduled Time</TableCell>
+              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold', textAlign: 'center' }}>Channels</TableCell>
+              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold', textAlign: 'center' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -546,7 +568,7 @@ const JobDashboardPage: React.FC = () => {
                 </TableCell>
               </TableRow>
             ) : (
-              jobs.map((job) => (
+              filteredJobs.map((job) => (
                 <TableRow key={job.Id}>
                   <TableCell sx={{ width: '35%', borderRight: '1px solid #ddd' }}>
                     <JobNameContainer>
@@ -608,13 +630,7 @@ const JobDashboardPage: React.FC = () => {
                     </JobNameContainer>
                   </TableCell>
                   <JobStatusCell job={{ Status: job.Status! }} />
-                  {/* <TableCell sx={{ borderRight: '1px solid #ddd' }}>
-                    {job.NextScheduledTime ? new Date(job.NextScheduledTime).toDateString() : "N/A"}
-                  </TableCell> */}
                   <DateCell job={job} />
-                  {/* <TableCell sx={{ borderRight: '1px solid #ddd' }}>
-                    {job.NextScheduledTime ? format(job.NextScheduledTime, 'MM/dd/yyyy HH:mm') : "N/A"} 
-                  </TableCell> */}
                   <NextScheduledTimeCell job={job} />
                   <TableCell sx={{ borderRight: '1px solid #ddd' }}>
                     {job.Channels?.map((channel) => (
@@ -626,27 +642,16 @@ const JobDashboardPage: React.FC = () => {
                       </div>
                     ))}
                   </TableCell>
-                  {/* <ActionsCell
-                    job={job}
-                    pauseJob={pauseJob}
-                    resumeJob={resumeJob}
-                    stopJob={stopJob}
-                    deleteJob={deleteJob}
-                    canPause={canPause}
-                    canResume={canResume}
-                    canStop={canStop}
-                    canDelete={canDelete}
-                  /> */}
                   <TableCell>
                     <div style={{ display: 'flex', gap: '10px' }}>
                       <IconButton style={{ backgroundColor: 'red' }} aria-label="pause">
                         {/* <Avatar sx={{ bgcolor: 'red' }}> */}
-                          <PauseIcon sx={{ color: 'white' }} />
+                        <PauseIcon sx={{ color: 'white' }} />
                         {/* </Avatar> */}
                       </IconButton>
                       <IconButton style={{ backgroundColor: 'blue' }} aria-label="delete">
                         {/* <Avatar sx={{ bgcolor: 'blue' }}> */}
-                          <DeleteIcon sx={{ color: 'white' }} />
+                        <DeleteIcon sx={{ color: 'white' }} />
                         {/* </Avatar> */}
                       </IconButton>
                     </div>
