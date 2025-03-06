@@ -313,9 +313,9 @@ const JobDashboardPage: React.FC = () => {
     setFilteredJobs(curFilteredJobs);
   };
 
-  useEffect(() => { 
+  useEffect(() => {
     applyFilters();
-  }, [statuses]); 
+  }, [statuses, jobs]);
 
   useEffect(() => {
     const currentDate = new Date();
@@ -402,7 +402,12 @@ const JobDashboardPage: React.FC = () => {
   }, [selectedTimeRangeFilter]);
 
   // Fetch jobs on filter change
-  useEffect(fetchJobs, [filterFromDate, filterToDate, selectedChannels, selectedSortBy]);
+  // Fetch jobs on filter change (optimized)
+  useEffect(() => {
+    if (channels.length > 0) { // Only fetch jobs if channels are loaded
+      fetchJobs();
+    }
+  }, [filterFromDate, filterToDate, selectedChannels, selectedSortBy, channels]); // Include 'channels' in the dependency array
 
 
   const handleOpenNewJobDialog = () => {
