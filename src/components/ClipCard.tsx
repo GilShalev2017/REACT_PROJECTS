@@ -8,6 +8,7 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { AIClipDm, Channel } from '../models/Models';
 import Spinner from 'react-spinner-material';
 import './ClipCard.css';
+import { LockOpen, MoreVert, Delete, Share, AttachFile, PersonOutline, CalendarToday } from '@mui/icons-material';
 
 const ClipCard: React.FC<{ clip: AIClipDm, sharedChannels: Channel[] }> = ({ clip, sharedChannels }) => {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
@@ -35,8 +36,8 @@ const ClipCard: React.FC<{ clip: AIClipDm, sharedChannels: Channel[] }> = ({ cli
     const totalSeconds = Math.round(seconds); // Round to the nearest whole second
     const minutes = Math.floor(totalSeconds / 60);
     const remainingSeconds = totalSeconds % 60;
-    if (remainingSeconds === 0) 
-          return `${minutes}`;
+    if (remainingSeconds === 0)
+      return `${minutes}`;
     const formattedSeconds = remainingSeconds < 10 ? `0${remainingSeconds}` : `${remainingSeconds}`;
     return `${minutes}:${formattedSeconds}`;
   };
@@ -139,7 +140,7 @@ const ClipCard: React.FC<{ clip: AIClipDm, sharedChannels: Channel[] }> = ({ cli
           {(clip.InsightsProgress.Value === 'New' || clip.InsightsProgress.Value === 'Processing') && (
             <div className="insight-processing">
               <div className="analyzing-div flex-row">
-                <Spinner radius={10} color={"#fff"} stroke={2} visible={clip.InsightsProgress.Value === 'Processing' || isAnalyzing} style={{margin: '8px 8px 8px -40px'}} />
+                <Spinner radius={10} color={"#fff"} stroke={2} visible={clip.InsightsProgress.Value === 'Processing' || isAnalyzing} style={{ margin: '8px 8px 8px -40px' }} />
                 <p className="analyzing-text">Analyzing</p>
               </div>
             </div>
@@ -166,23 +167,18 @@ const ClipCard: React.FC<{ clip: AIClipDm, sharedChannels: Channel[] }> = ({ cli
         </div>
       )}
 
-      <div className="details default-cursor">
-        <div className="row bold smaller-font ott-h3-fnt ott-color-20 ott-no-wrap"></div>
-        <div className="left-content ott-h3-fnt ott-color-20 ott-no-wrap">
-          {clip.Visibility!.Value === 'Private' && <LockOpenIcon className="lock-icon" />}
+      {/* <div className="details default-cursor" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          {clip.Visibility?.Value === 'Private' && <LockOpenIcon className="lock-icon" />}
           <Tooltip title={clip.Name}>
             <span>{clip.Name}</span>
           </Tooltip>
         </div>
-        <div className="right-content-menu"> {/* Assuming mediaInsightUserRight is always 2 */}
+        <div style={{ marginLeft: 'auto', position: 'relative', top: '-30px', right: '-15px'}}>
           <IconButton onClick={handleMenuOpen} className="ott-mat-icon-2 ott-pointer menu-button">
             <MoreVertIcon className="menu-icon" />
           </IconButton>
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
-          >
+          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
             <MenuItem onClick={() => deleteClip(clip.Id!)}>
               <span>Delete</span>
             </MenuItem>
@@ -198,21 +194,31 @@ const ClipCard: React.FC<{ clip: AIClipDm, sharedChannels: Channel[] }> = ({ cli
       <div className="time-tags-container ott-body-2-fnt ott-color-20 ott-no-wrap">
         <div className="icon-and-text-container">
           <PersonOutlineIcon className="created-by-icon" />
-          {clip.CreatedBy}
-          {/* <span>{clip.CreatedBy} at {new Date(clip.CreatedDate!).toLocaleTimeString(, { hour: '2-digit', minute: '2-digit', second: '2-digit' })} {new Date(clip.CreatedDate!).toLocaleDateString(, { year: 'numeric', month: 'short', day: 'numeric' })}</span> */}
+          <span>
+            {clip.CreatedBy} at{' '}
+            {new Date(clip.CreatedDate!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            {' '}
+            {new Date(clip.CreatedDate!).toLocaleDateString([], { year: '2-digit', month: 'numeric', day: '2-digit' })}
+          </span>
         </div>
         <div className="icon-and-text-container">
           <CalendarTodayIcon className="created-at-icon" />
           <span className="ellipsis">
-            {/* {new Date(clip.ProxyMetadata!.To).toLocaleDateString(, { year: 'numeric', month: 'short', day: 'numeric' })} {new Date(clip.ProxyMetadata!.From).toLocaleTimeString(, { hour: '2-digit', minute: '2-digit', second: '2-digit' })} [{clip.ProxyMetadata!.ChannelDisplayName}] */}
+            {new Date(clip.ProxyMetadata?.From!).toLocaleDateString([], { year: '2-digit', month: 'numeric', day: '2-digit' })}
+            {' '}
+            {new Date(clip.ProxyMetadata?.From!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            {' '}
+            [{clip.ProxyMetadata?.ChannelDisplayName}]
           </span>
         </div>
         <div className="tags-container">
           {visibleTags.map((tag, index) => (
-            <span key={index} className="tag ott-background-3001 ott-color-20">{tag}</span>
+            <span key={index} className="tag ott-background-3001 ott-color-20">
+              {tag}
+            </span>
           ))}
           {hiddenTagsCount > 0 && (
-            <Tooltip title={clip.UserTags!.slice(3).join(', ')}>
+            <Tooltip title={clip.UserTags?.slice(3).join(', ')}>
               <span className="tag ott-background-3001 ott-color-20">+{hiddenTagsCount}</span>
             </Tooltip>
           )}
@@ -221,11 +227,6 @@ const ClipCard: React.FC<{ clip: AIClipDm, sharedChannels: Channel[] }> = ({ cli
           <div className="ott-background-350 ott-border-color-1000 ott-color-20 additional-info">
             <div className="additional-text">
               <img src="./resources/MediaInsightStart.png" className="search-img" alt="Search" />
-              {/* {getHighlightedWords().map((word, index) => (
-                <span key={index} className={word.isHighlighted ? 'highlighted-word' : ''}>
-                  {word.value}&nbsp;
-                </span>
-              ))} */}
             </div>
             <div className="additional-info-row">
               <div className="line-number">
@@ -248,7 +249,73 @@ const ClipCard: React.FC<{ clip: AIClipDm, sharedChannels: Channel[] }> = ({ cli
             </div>
           </div>
         )}
+      </div> */}
+      <div className="details default-cursor">
+        {/* Clip Header */}
+        <div className="row bold smaller-font ott-h3-fnt ott-color-20 ott-no-wrap">
+          <div className="left-content ott-h3-fnt ott-color-20 ott-no-wrap">
+            {clip.Visibility?.Value === "Private" && <LockOpen className="lock-icon" />}
+            <Tooltip title={clip.Name}>
+              <span className="clip-name">{clip.Name}</span>
+            </Tooltip>
+          </div>
+
+          {true && (
+            <div className="right-content-menu">
+              <IconButton onClick={handleMenuOpen} className="ott-mat-icon-2 ott-pointer menu-button">
+                <MoreVert className="menu-icon" />
+              </IconButton>
+              <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
+                <MenuItem onClick={() => deleteClip(clip.Id!)}>
+                  <Delete color="primary" />
+                  <span>Delete</span>
+                </MenuItem>
+                <MenuItem onClick={share}>
+                  <Share color="primary" />
+                  <span>Share</span>
+                </MenuItem>
+                <MenuItem onClick={() => createReport(clip.Id!, clip.AudioLanguage, clip.Name)}>
+                  <AttachFile color="primary" />
+                  <span>Report</span>
+                </MenuItem>
+              </Menu>
+            </div>
+          )}
+        </div>
+
+        {/* Time and Tags Section */}
+        <div className="time-tags-container ott-body-2-fnt ott-color-20 ott-no-wrap">
+          <div className="icon-and-text-container">
+            <PersonOutline className="created-by-icon" />
+            <span>
+              {clip.CreatedBy} at {new Date(clip.CreatedDate!).toLocaleTimeString()} {new Date(clip.CreatedDate!).toLocaleDateString()}
+            </span>
+          </div>
+          <div className="icon-and-text-container">
+            <CalendarToday className="created-at-icon" />
+            <span className="ellipsis" >
+              {clip?.ProxyMetadata?.To ? new Date(clip.ProxyMetadata.To).toLocaleDateString() : ""}
+              {clip?.ProxyMetadata?.From ? new Date(clip.ProxyMetadata.From).toLocaleTimeString() : ""}
+              [{clip?.ProxyMetadata?.ChannelDisplayName}]
+            </span>
+          </div>
+
+          {/* Tags */}
+          <div className="tags-container">
+            {visibleTags.map((tag, index) => (
+              <span key={index} className="tag ott-background-3001 ott-color-20">
+                {tag}
+              </span>
+            ))}
+            {hiddenTagsCount > 0 && (
+              <Tooltip title={clip.UserTags!.slice(3).join(", ")}>
+                <span className="tag ott-background-3001 ott-color-20">{"+" + hiddenTagsCount}</span>
+              </Tooltip>
+            )}
+          </div>
+        </div>
       </div>
+
     </div>
   );
 };

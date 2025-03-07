@@ -224,7 +224,7 @@ video {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 15px;
+    /* padding: 0 15px; */
 }
 
 .bold {
@@ -317,6 +317,7 @@ mat-spinner {
     flex-wrap: wrap;
     padding: 8px 0 4px 0;
     height: 42px;
+    font-size: 13px;
 }
 
 .tag {
@@ -345,6 +346,7 @@ mat-spinner {
 .icon-and-text-container {
     display: flex;
     align-items: center;
+    font-size: 13px;
 
     .created-by-icon {
         font-size: 18px;

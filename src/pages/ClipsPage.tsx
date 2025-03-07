@@ -30,6 +30,7 @@ import './ClipsPage.css'; // Assuming you have your styles in ClipsPage.css
 import { getChannels, graphql_searchClips} from '../api/jobService';
 import { AIClipDm, Channel, UITag } from '../models/Models';
 import ClipCard from '../components/ClipCard';
+import { Margin } from '@mui/icons-material';
 
 const ClipsPage = () => {
   const [welcomeScreenShown, setWelcomeScreenShown] = useState(false); // Replace with your logic
@@ -186,7 +187,7 @@ const ClipsPage = () => {
 
           <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#EEEFF7', gap: 3 }}>
             <Typography variant="h6" sx={{ width: '200px' }}>Clips</Typography>
-            <div className="ott-background-200 ott-border-color-1000 search-container" style={{ marginLeft: '-800px' }}>
+            <div className="ott-background-200 ott-border-color-1000 search-container" style={{ position: 'relative', right:'35%' }}>
 
               <div className={`search-div ${isSearchExpanded ? 'expanded' : ''}`} onClick={onSearchClick}>
                 <div className="animated-search">
@@ -222,7 +223,7 @@ const ClipsPage = () => {
                   </div>
                 </div>
               </div>
-              <FormHelperText className="ott-color-20">
+              <FormHelperText className="ott-color-20" style={{marginTop: '-1px'}}>
                 Search for &nbsp;
                 <FormControl>
                   <Select
