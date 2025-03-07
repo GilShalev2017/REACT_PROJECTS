@@ -5,8 +5,6 @@ import { JobRequestFilter, AiJobRequest, Channel, LanguageDm, AIClipDm, UITag } 
 const API_KEY = "ActAuth eyJpZCI6MiwibmFtZSI6IkFkbWluaXN0cmF0b3IiLCJhY3R1c191c2VyX2dyb3VwX2lkIjowLCJpc19hZG1pbiI6dHJ1ZSwic2Vzc2lvbl9ndWlkIjoiNWIwYjU5YTItNTFjYi00ZjY2LTk5YzAtOTIzOTQyNzNjZjlmIiwiaW5fZGlyZWN0b3J5X3NlcnZpY2UiOmZhbHNlLCJhZF9ncm91cF9uYW1lIjpudWxsLCJzY29wZSI6IiIsIklkZW50aXR5IjpudWxsfSZYJlgmWC0xNjA2MTEwNzA3";
 const BASE_AI_JOB_API = "http://localhost:8894/intelligence/api/aijob";
 
-export const uiClipTags:UITag[] = [];
-
 export const getFilteredJobRequests = async (filter: JobRequestFilter): Promise<AiJobRequest[]> => {
     try {
         //const url = "http://localhost:8894/intelligence/api/aijob/ai-job-requests"; //LOCAL
@@ -243,8 +241,7 @@ export const graphql_searchClips = async (): Promise<AIClipDm[]> => {
         const pascalClips = camelToPascal(clips);
         // searchedClips = pascalClips;
         // filteredClips = pascalClips;
-        const uiClipTags = getUiClipTags(pascalClips);
-        uiClipTags.push(...uiClipTags);
+        //const uiClipTags = getUiClipTags(pascalClips);
         // setClipsSelection(); // Assuming setClipsSelection is defined elsewhere
         // filterByTags(selectedTags); // Assuming filterByTags is defined elsewhere
         // isSearching = false;
@@ -274,19 +271,4 @@ function camelToPascal(obj: any): any {
         }
     }
     return result;
-}
-
-const getUiClipTags = (clips: AIClipDm[]): UITag[] => {
-    const clipTagsSet = new Set<string>();
-
-    clips.forEach(clip => {
-        clip?.UserTags?.forEach(tag => {
-            if (tag.trim() !== "") {
-                clipTagsSet.add(tag.trim());
-            }
-        });
-    });
-
-    return Array.from(clipTagsSet, tag => ({ text: tag, selected: false }));
-    //return Array.from(clipTagsSet, tag => ({ text: tag, selected: this.selectedTags.includes(tag) }));
 }

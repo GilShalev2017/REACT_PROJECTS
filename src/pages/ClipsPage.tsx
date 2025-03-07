@@ -10,7 +10,6 @@ import {
   Divider,
   Button,
   Tooltip,
-  TextField,
   FormControl,
   InputLabel,
   FormHelperText,
@@ -28,8 +27,8 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import CancelIcon from '@mui/icons-material/Cancel';
 
 import './ClipsPage.css'; // Assuming you have your styles in ClipsPage.css
-import { graphql_searchClips, uiClipTags } from '../api/jobService';
-import { AIClipDm, Channel } from '../models/Models';
+import { getChannels, graphql_searchClips} from '../api/jobService';
+import { AIClipDm, Channel, UITag } from '../models/Models';
 import ClipCard from '../components/ClipCard';
 
 const ClipsPage = () => {
@@ -54,6 +53,7 @@ const ClipsPage = () => {
   const [selectedChannels, setSelectedChannels] = useState<number[]>([-1]); // Default to placeholder
   const [channels, setChannels] = useState<Channel[]>([]);
   const [selectedSortBy, setSelectedSortBy] = useState<number>(0);
+  const [uiClipTags, setUiClipTags] = useState<UITag[]>([]);
 
   const onSearchClick = () => {
     // setIsSearchExpanded(!isSearchExpanded);
@@ -141,15 +141,39 @@ const ClipsPage = () => {
     return '500px'; // Example height
   };
 
+  const findAndSetUiClipTags = (clips: AIClipDm[]): UITag[] => {
+    const clipTagsSet = new Set<string>();
+
+    clips.forEach(clip => {
+        clip?.UserTags?.forEach(tag => {
+            if (tag.trim() !== "") {
+                clipTagsSet.add(tag.trim());
+            }
+        });
+    });
+
+    return Array.from(clipTagsSet, tag => ({ text: tag, selected: false }));
+    //return Array.from(clipTagsSet, tag => ({ text: tag, selected: this.selectedTags.includes(tag) }));
+}
+
   useEffect(() => {
+    fetchChannels();
     fetchClips();
   }, []);
+
+  const fetchChannels = () => {
+    getChannels()
+      .then((channels) => setChannels(channels))
+      .catch((error: any) => console.error("Failed to load channels:", error))
+  }
 
   const fetchClips = () => {
     graphql_searchClips()
       .then((clipsData) => {
         setClips(clipsData);
         setFilteredClips(clipsData);
+        const tags = findAndSetUiClipTags(clipsData);
+        setUiClipTags(tags);
         console.log(clipsData);
       })
       .catch((error) => console.error("Failed to load channels:", error))
@@ -162,8 +186,8 @@ const ClipsPage = () => {
 
           <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#EEEFF7', gap: 3 }}>
             <Typography variant="h6" sx={{ width: '200px' }}>Clips</Typography>
-            <div className="ott-background-200 ott-border-color-1000 search-container" style={{marginLeft:'-800px'}}>
-              
+            <div className="ott-background-200 ott-border-color-1000 search-container" style={{ marginLeft: '-800px' }}>
+
               <div className={`search-div ${isSearchExpanded ? 'expanded' : ''}`} onClick={onSearchClick}>
                 <div className="animated-search">
                   <div className="ott-input-with-suffix-prefix animated-search-div">
@@ -238,7 +262,7 @@ const ClipsPage = () => {
           </Toolbar>
 
           <Toolbar sx={{ display: "flex", justifyContent: "space-between", border: "2px solid #D6DBF8", backgroundColor: 'whitesmoked' }}
-                   className={`filters-toolbar sliding-toolbar ott-background-200 ott-border-color-1000 ${isLowerToolbarHidden ? 'hidden-toolbar' : ''}`}>
+            className={`filters-toolbar sliding-toolbar ott-background-200 ott-border-color-1000 ${isLowerToolbarHidden ? 'hidden-toolbar' : ''}`}>
             <Typography variant="h6"></Typography>
             <div className="category-toolbar">
               {showLeftButton() && (
@@ -324,7 +348,7 @@ const ClipsPage = () => {
 
           <Button variant='outlined'
             className={`ott-background-200 ott-border-color-1000 appendix mat-stroked-button ${isLowerToolbarHidden ? 'show-filters' : 'hide'}`}
-            onClick={()=>toggleLowerToolbars()}>
+            onClick={() => toggleLowerToolbars()}>
             {isLowerToolbarHidden ? (
               <ExpandMoreIcon className="ott-mat-icon-2 appendix-button" />
             ) : (
@@ -425,7 +449,7 @@ const ClipsPage = () => {
           filteredClips.length > 0 && (
             <div className="video-clip-gallery ott-background-200 ott-border-color-1000" style={{ height: getGalleryHeight() }}>
               {filteredClips.map((clip) => (
-                <ClipCard key={clip.Id} clip={clip} />
+                <ClipCard key={clip.Id} clip={clip} sharedChannels={channels}/>
               ))}
             </div>
           )

@@ -5,11 +5,11 @@ import LockOpenIcon from '@mui/icons-material/LockOpen';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import { AIClipDm } from '../models/Models';
+import { AIClipDm, Channel } from '../models/Models';
 import Spinner from 'react-spinner-material';
 import './ClipCard.css';
 
-const ClipCard: React.FC<{ clip: AIClipDm }> = ({ clip }) => {
+const ClipCard: React.FC<{ clip: AIClipDm,sharedChannels: Channel[] }> = ({ clip, sharedChannels }) => {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [showBarAndPoint, setShowBarAndPoint] = useState(false);
   const [barLeft, setBarLeft] = useState(0);
@@ -19,6 +19,7 @@ const ClipCard: React.FC<{ clip: AIClipDm }> = ({ clip }) => {
   const [queryResults, setQueryResults] = useState(clip.Insights[0]?.Results || []); //TODO PATCH
   const [shouldShowClipNameInfoFlag, setShouldShowClipNameInfoFlag] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [channels, setChannels] = useState<Channel[]>([]);
 
   const thumbnailImageRef = useRef<HTMLDivElement>(null);
 
@@ -94,7 +95,10 @@ const ClipCard: React.FC<{ clip: AIClipDm }> = ({ clip }) => {
   }
 
   const getChannelLogoUrl = (channelDisplayName: string) => {
-    return "null";
+    const foundChannel = sharedChannels.find(channel => channel.displayName === channelDisplayName);
+    if (foundChannel) {
+      return foundChannel.logoUrl;
+    }
   }
 
   const deleteClip = (clipId: string) => {
@@ -105,17 +109,17 @@ const ClipCard: React.FC<{ clip: AIClipDm }> = ({ clip }) => {
     throw new Error('Function not implemented.');
   }
 
-  const createReport = (clipId : string, audioLanguage: string, clipName : string) => {
+  const createReport = (clipId: string, audioLanguage: string, clipName: string) => {
 
   }
 
   return (
     <div className={`video-clip ott-border-color-1000 ott-background-200 ${clip.selected ? 'clip-selected' : ''} ${searchTerm ? 'larger-height' : ''}`}>
       {clip.VideoProgress.Value === 'Done' && (
-        <div ref={thumbnailImageRef} 
-             className="thumbnail-image"
-             onClick={(e) => { e.stopPropagation(); goToClip(); }}
-             onMouseOut={handleMouseOut}>
+        <div ref={thumbnailImageRef}
+          className="thumbnail-image"
+          onClick={(e) => { e.stopPropagation(); goToClip(); }}
+          onMouseOut={handleMouseOut}>
           <Checkbox className="thumbnail-checkbox" onClick={(e) => { e.stopPropagation(); onCheckboxClick(clip.Id!, !clip.selected); }} checked={clip.selected || false} />
           <img src={getThumbnailUrl()} alt={clip.Name} onLoad={handleImageLoad} className="img-thumbnail" hidden={!isImageLoaded} height="175px" width="311px" onMouseMove={handleMouseMove} />
           {showBarAndPoint && <div className="vertical-bar-up" style={{ left: `${barLeft}px` }}></div>}
@@ -191,7 +195,7 @@ const ClipCard: React.FC<{ clip: AIClipDm }> = ({ clip }) => {
       <div className="time-tags-container ott-body-2-fnt ott-color-20 ott-no-wrap">
         <div className="icon-and-text-container">
           <PersonOutlineIcon className="created-by-icon" />
-          {clip.CreatedBy } 
+          {clip.CreatedBy}
           {/* <span>{clip.CreatedBy} at {new Date(clip.CreatedDate!).toLocaleTimeString(, { hour: '2-digit', minute: '2-digit', second: '2-digit' })} {new Date(clip.CreatedDate!).toLocaleDateString(, { year: 'numeric', month: 'short', day: 'numeric' })}</span> */}
         </div>
         <div className="icon-and-text-container">
