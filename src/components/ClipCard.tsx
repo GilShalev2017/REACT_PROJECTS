@@ -9,7 +9,7 @@ import { AIClipDm, Channel } from '../models/Models';
 import Spinner from 'react-spinner-material';
 import './ClipCard.css';
 
-const ClipCard: React.FC<{ clip: AIClipDm,sharedChannels: Channel[] }> = ({ clip, sharedChannels }) => {
+const ClipCard: React.FC<{ clip: AIClipDm, sharedChannels: Channel[] }> = ({ clip, sharedChannels }) => {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [showBarAndPoint, setShowBarAndPoint] = useState(false);
   const [barLeft, setBarLeft] = useState(0);
@@ -32,9 +32,13 @@ const ClipCard: React.FC<{ clip: AIClipDm,sharedChannels: Channel[] }> = ({ clip
   };
 
   const convertSecondsToMinutes = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `<span class="math-inline">\{minutes\}\:</span>{remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+    const totalSeconds = Math.round(seconds); // Round to the nearest whole second
+    const minutes = Math.floor(totalSeconds / 60);
+    const remainingSeconds = totalSeconds % 60;
+    if (remainingSeconds === 0) 
+          return `${minutes}`;
+    const formattedSeconds = remainingSeconds < 10 ? `0${remainingSeconds}` : `${remainingSeconds}`;
+    return `${minutes}:${formattedSeconds}`;
   };
 
   const handleImageLoad = () => {
@@ -116,17 +120,16 @@ const ClipCard: React.FC<{ clip: AIClipDm,sharedChannels: Channel[] }> = ({ clip
   return (
     <div className={`video-clip ott-border-color-1000 ott-background-200 ${clip.selected ? 'clip-selected' : ''} ${searchTerm ? 'larger-height' : ''}`}>
       {clip.VideoProgress.Value === 'Done' && (
-        <div ref={thumbnailImageRef}
-          className="thumbnail-image"
-          onClick={(e) => { e.stopPropagation(); goToClip(); }}
-          onMouseOut={handleMouseOut}>
-          <Checkbox className="thumbnail-checkbox" onClick={(e) => { e.stopPropagation(); onCheckboxClick(clip.Id!, !clip.selected); }} checked={clip.selected || false} />
+        <div ref={thumbnailImageRef} className="thumbnail-image" onClick={(e) => { e.stopPropagation(); goToClip(); }} onMouseOut={handleMouseOut}>
+          <div className="top-elements"> {/* Container for checkbox and logo */}
+            <Checkbox className="thumbnail-checkbox" onClick={(e) => { e.stopPropagation(); onCheckboxClick(clip.Id!, !clip.selected); }} checked={clip.selected || false} />
+            <div><img src={getChannelLogoUrl(clip.ProxyMetadata!.ChannelDisplayName!)} alt="" className="channel-logo" /></div>
+          </div>
           <img src={getThumbnailUrl()} alt={clip.Name} onLoad={handleImageLoad} className="img-thumbnail" hidden={!isImageLoaded} height="175px" width="311px" onMouseMove={handleMouseMove} />
           {showBarAndPoint && <div className="vertical-bar-up" style={{ left: `${barLeft}px` }}></div>}
           {showBarAndPoint && <div className="vertical-bar-bottom" style={{ left: `${barLeft}px` }}></div>}
           {showBarAndPoint && <div className="point" style={{ left: `${pointLeft}px` }}></div>}
           <div className="time-label">{convertSecondsToMinutes(clip.VideoDurationSec)} min</div>
-          <div><img src={getChannelLogoUrl(clip.ProxyMetadata!.ChannelDisplayName!)} alt="" className="channel-logo" /></div>
           {clip.InsightsProgress.Value === 'ErrorProcessing' && (
             <div className="error-label">
               <ErrorOutlineIcon style={{ marginRight: '6px', marginTop: '-9px', verticalAlign: 'middle', height: '16px', width: '16px' }} />
@@ -136,7 +139,7 @@ const ClipCard: React.FC<{ clip: AIClipDm,sharedChannels: Channel[] }> = ({ clip
           {(clip.InsightsProgress.Value === 'New' || clip.InsightsProgress.Value === 'Processing') && (
             <div className="insight-processing">
               <div className="analyzing-div flex-row">
-                <Spinner radius={10} color={"#fff"} stroke={2} visible={clip.InsightsProgress.Value === 'Processing' || isAnalyzing} />
+                <Spinner radius={10} color={"#fff"} stroke={2} visible={clip.InsightsProgress.Value === 'Processing' || isAnalyzing} style={{margin: '8px 8px 8px -40px'}} />
                 <p className="analyzing-text">Analyzing</p>
               </div>
             </div>

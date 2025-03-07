@@ -69,7 +69,7 @@ const ClipsPage = () => {
   };
 
   const refreshAll = () => {
-    // Implement your refresh logic here
+    fetchClips();
   };
 
   const addNewClip = () => {
@@ -261,7 +261,7 @@ const ClipsPage = () => {
             </div>
           </Toolbar>
 
-          <Toolbar sx={{ display: "flex", justifyContent: "space-between", border: "2px solid #D6DBF8", backgroundColor: 'whitesmoked' }}
+          <Toolbar sx={{ display: "flex", justifyContent: "space-between", border: "1px solid #D6DBF8", backgroundColor: 'whitesmoked' }}
             className={`filters-toolbar sliding-toolbar ott-background-200 ott-border-color-1000 ${isLowerToolbarHidden ? 'hidden-toolbar' : ''}`}>
             <Typography variant="h6"></Typography>
             <div className="category-toolbar">
