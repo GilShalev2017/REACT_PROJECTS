@@ -14,6 +14,7 @@ import {
   FormControl,
   InputLabel,
   FormHelperText,
+  Typography,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
@@ -25,15 +26,11 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import CancelIcon from '@mui/icons-material/Cancel';
 
-// Assuming you have these components as React components
-// import TimePeriod from './TimePeriod'; // Replace with the correct path
-// import ChannelMiniSelector from './ChannelMiniSelector'; // Replace with the correct path
-// import ClipCard from './ClipCard'; // Replace with the correct path
-
 import './ClipsPage.css'; // Assuming you have your styles in ClipsPage.css
 import { graphql_searchClips } from '../api/jobService';
-import { AIClipDm } from '../models/Models';
+import { AIClipDm, Channel } from '../models/Models';
 import ClipCard from '../components/ClipCard';
+import { Height } from '@mui/icons-material';
 
 const ClipsPage = () => {
   const [welcomeScreenShown, setWelcomeScreenShown] = useState(false); // Replace with your logic
@@ -48,8 +45,15 @@ const ClipsPage = () => {
   const [filteredClips, setFilteredClips] = useState<AIClipDm[]>([]); // Assuming filteredClips is a local state
   const [isSearching, setIsSearching] = useState(false);
   const categoryContainerRef = useRef(null);
-  const [clips,setClips] = useState<AIClipDm[]>([]);
+  const [clips, setClips] = useState<AIClipDm[]>([]);
   const searchPlaceholder = 'Search Clips...'; // Replace with your translation logic
+
+  const [selectedTimeRangeFilter, setSelectedTimeRangeFilter] = useState<string | null>('lmonth');
+  const [filterFromDate, setFilterFromDate] = useState<Date | undefined>();
+  const [filterToDate, setFilterToDate] = useState<Date | undefined>();
+  const [selectedChannels, setSelectedChannels] = useState<number[]>([-1]); // Default to placeholder
+  const [channels, setChannels] = useState<Channel[]>([]);
+  const [selectedSortBy, setSelectedSortBy] = useState<number>(0);
 
   const onSearchClick = () => {
     setIsSearchExpanded(!isSearchExpanded);
@@ -142,7 +146,7 @@ const ClipsPage = () => {
 
   const fetchClips = () => {
     graphql_searchClips()
-      .then((clipsData) => { 
+      .then((clipsData) => {
         setClips(clipsData);
         setFilteredClips(clipsData);
         console.log(clipsData);
@@ -154,8 +158,9 @@ const ClipsPage = () => {
     <div className="ott ott-background-200 main-div">
       <div className="ott ott-background-200 main-div">
         <div className="sticky-div" style={{ display: welcomeScreenShown ? 'none' : 'block' }}>
-          <Toolbar className="search-toolbar ott-background-3000">
-            <span className="clips-span">Clips</span>
+
+          <Toolbar sx={{ display: "flex", justifyContent: "space-between", backgroundColor: '#EEEFF7' }}>
+            <Typography variant="h6">Clips</Typography>
             <div className="ott-background-200 ott-border-color-1000 search-container">
               <div className={`search-div ${isSearchExpanded ? 'expanded' : ''}`} onClick={onSearchClick}>
                 <div className="animated-search">
@@ -189,7 +194,7 @@ const ClipsPage = () => {
                     value={selectedSearch}
                     onChange={(e) => setSelectedSearch(e.target.value)}
                     className="primary-color"
-                    style={{ fontWeight: 500 }}
+                    style={{ fontWeight: 500, height:'20px' }}
                   >
                     <MenuItem value="All">
                       <Tooltip title="Filter by all the words">
@@ -206,21 +211,80 @@ const ClipsPage = () => {
                 &nbsp;words.
               </FormHelperText>
             </div>
-            <span className="example-spacer"></span>
-            <Button className="ott-button refresh-button" onClick={refreshAll}>
-              <RefreshIcon className="ott-mat-icon-2 button-icon" />
-              <span className="button-text">Refresh</span>
-            </Button>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={addNewClip}
-              className="add-clip-button"
-              style={{ display: 'block' }} // Assuming mediaInsightUserRight is always 2
-            >
-              <img src="./resources/white_ai.svg" className="add-clip-img" alt="New Clip" />
-              New Clip
-            </Button>
+            <div>
+              <Button className="ott-button refresh-button" variant="outlined" onClick={refreshAll} sx={{marginRight:2}}>
+                <RefreshIcon className="ott-mat-icon-2 button-icon" />
+                <span className="button-text">Refresh</span>
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={addNewClip}
+                className="add-clip-button">
+                <img src="./resources/white_ai.svg" className="add-clip-img" alt="New Clip" />
+                New Clip
+              </Button>
+            </div>
+          </Toolbar>
+
+          <Toolbar sx={{ display: "flex", justifyContent: "space-between", border: "2px solid #D6DBF8", backgroundColor: 'whitesmoked' }}>
+            <Typography variant="h6"></Typography>
+            <div>
+              <FormControl margin="normal" sx={{ marginRight: 2, minWidth: 150 }}>
+                <InputLabel>Filter by Time-Range</InputLabel>
+                <Select value={selectedTimeRangeFilter} onChange={(e) => setSelectedTimeRangeFilter(e.target.value)}
+                  label="Filter by Time-Range" sx={{ height: '35px' }}>
+                  <MenuItem value="today">Today</MenuItem>
+                  <MenuItem value="lweek">Last week</MenuItem>
+                  <MenuItem value="l2week">Last two weeks</MenuItem>
+                  <MenuItem value="lmonth">Last month</MenuItem>
+                </Select>
+              </FormControl>
+              <FormControl margin="normal" sx={{ marginRight: 2, minWidth: 150 }}>
+                <InputLabel>Filter by Channel</InputLabel>
+                <Select
+                  multiple
+                  value={selectedChannels}
+                  onChange={(e) => setSelectedChannels(e.target.value as number[])}
+                  label="Filter by Channel"
+                  sx={{ height: '35px' }}
+                  renderValue={(selected) => {
+                    if (selected.length === 1 && selected[0] === -1) {
+                      return "No channel filter";
+                    }
+                    return selected
+                      .filter((value) => value !== -1)
+                      .map((value) => {
+                        const channel = channels.find((c) => c.id === value);
+                        return channel ? channel.displayName : null;
+                      })
+                      .filter(Boolean)
+                      .join(', ');
+                  }}
+                >
+                  <MenuItem key="-1" value={-1}>
+                    {"No channel filter"}
+                  </MenuItem>
+                  {channels.map((channel) => (
+                    <MenuItem key={channel.id} value={channel.id}>
+                      {channel.displayName}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl margin="normal" sx={{ minWidth: 120 }}>
+                <InputLabel>Sort By</InputLabel>
+                <Select value={selectedSortBy} onChange={(e) => setSelectedSortBy(e.target.value as number)}
+                  label="Sort By" sx={{ height: '35px' }}>
+                  <MenuItem value={0}>Newest</MenuItem>
+                  <MenuItem value={1}>Oldest</MenuItem>
+                  <MenuItem value={2}>A-&gt;z</MenuItem>
+                  <MenuItem value={3}>Z-&gt;a</MenuItem>
+                  <MenuItem value={4}>Longest</MenuItem>
+                  <MenuItem value={5}>Shortest</MenuItem>
+                </Select>
+              </FormControl>
+            </div>
           </Toolbar>
 
           <Toolbar
@@ -265,23 +329,7 @@ const ClipsPage = () => {
               mat_label_color="ott-background-200"
               // initialChannelIds={mediaInsightService.selectedChannelsIds} // Replace with your logic
             /> */}
-            <div className="ca-toolbar-export-time sort-div">
-              <TextField
-                select
-                label="Sort by"
-                variant="outlined"
-                className="sort-container"
-                value={0} // Replace with your selected sort option logic
-                onChange={dateChanged}
-              >
-                <MenuItem value={0}>Newest</MenuItem>
-                <MenuItem value={1}>Oldest</MenuItem>
-                <MenuItem value={2}>A-&gt;z</MenuItem>
-                <MenuItem value={3}>Z-&gt;a</MenuItem>
-                <MenuItem value={4}>Longest</MenuItem>
-                <MenuItem value={5}>Shortest</MenuItem>
-              </TextField>
-            </div>
+
           </Toolbar>
 
           <Button
@@ -296,9 +344,7 @@ const ClipsPage = () => {
             <span className="appendix-text">{isLowerToolbarHidden ? 'Show filters' : 'Hide filters'}</span>
           </Button>
 
-          <Toolbar
-            className={`clips-summary-toolbar sliding-toolbar ott-background-200 ott-border-color-1000 ${isLowerToolbarHidden ? 'hidden-toolbar' : ''}`}
-          >
+          <Toolbar className={`clips-summary-toolbar sliding-toolbar ott-background-200 ott-border-color-1000 ${isLowerToolbarHidden ? 'hidden-toolbar' : ''}`} >
             <Checkbox
               className="select-all-clips"
               checked={isAllClipsSelected}

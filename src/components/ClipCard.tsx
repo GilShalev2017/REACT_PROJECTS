@@ -112,7 +112,10 @@ const ClipCard: React.FC<{ clip: AIClipDm }> = ({ clip }) => {
   return (
     <div className={`video-clip ott-border-color-1000 ott-background-200 ${clip.selected ? 'clip-selected' : ''} ${searchTerm ? 'larger-height' : ''}`}>
       {clip.VideoProgress.Value === 'Done' && (
-        <div ref={thumbnailImageRef} className="thumbnail-image" onClick={(e) => { e.stopPropagation(); goToClip(); }} onMouseOut={handleMouseOut}>
+        <div ref={thumbnailImageRef} 
+             className="thumbnail-image"
+             onClick={(e) => { e.stopPropagation(); goToClip(); }}
+             onMouseOut={handleMouseOut}>
           <Checkbox className="thumbnail-checkbox" onClick={(e) => { e.stopPropagation(); onCheckboxClick(clip.Id!, !clip.selected); }} checked={clip.selected || false} />
           <img src={getThumbnailUrl()} alt={clip.Name} onLoad={handleImageLoad} className="img-thumbnail" hidden={!isImageLoaded} height="175px" width="311px" onMouseMove={handleMouseMove} />
           {showBarAndPoint && <div className="vertical-bar-up" style={{ left: `${barLeft}px` }}></div>}
@@ -188,6 +191,7 @@ const ClipCard: React.FC<{ clip: AIClipDm }> = ({ clip }) => {
       <div className="time-tags-container ott-body-2-fnt ott-color-20 ott-no-wrap">
         <div className="icon-and-text-container">
           <PersonOutlineIcon className="created-by-icon" />
+          {clip.CreatedBy } 
           {/* <span>{clip.CreatedBy} at {new Date(clip.CreatedDate!).toLocaleTimeString(, { hour: '2-digit', minute: '2-digit', second: '2-digit' })} {new Date(clip.CreatedDate!).toLocaleDateString(, { year: 'numeric', month: 'short', day: 'numeric' })}</span> */}
         </div>
         <div className="icon-and-text-container">

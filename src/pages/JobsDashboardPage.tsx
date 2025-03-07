@@ -457,7 +457,7 @@ const JobDashboardPage: React.FC = () => {
   return (
     <Paper>
 
-      <Toolbar sx={{ display: "flex", justifyContent: "space-between", backgroundColor: '#f0f0f0' }}>
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between", backgroundColor: '#EEEFF7' }}>
         <Typography variant="h6">Job Dashboard</Typography>
         <div>
           <Button variant="contained" color="secondary" onClick={fetchJobs} sx={{ marginRight: 1 }}>
@@ -469,7 +469,7 @@ const JobDashboardPage: React.FC = () => {
         </div>
       </Toolbar>
 
-      <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between",border: "1px solid #D6DBF8" }}>
         <div className="category-container"
           style={{ display: 'flex', alignItems: 'center' }}>
           {statuses.map((status) => (
@@ -494,21 +494,6 @@ const JobDashboardPage: React.FC = () => {
             </Select>
           </FormControl>
 
-          {/* <FormControl margin="normal" sx={{ marginRight: 2, minWidth: 150 }}>
-            <InputLabel>Filter by Channel</InputLabel>
-            <Select multiple value={selectedChannels} onChange={(e) => setSelectedChannels(e.target.value as number[])}
-              label="Filter by Channel" sx={{ height: '40px' }}>
-              <MenuItem key='-1' value='-1'>
-                {'No channel filter'}
-              </MenuItem>
-              {channels.map((channel) => (
-                <MenuItem key={channel.id} value={channel.id}>
-                  {channel.displayName}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl> */}
-
           <FormControl margin="normal" sx={{ marginRight: 2, minWidth: 150 }}>
             <InputLabel>Filter by Channel</InputLabel>
             <Select
@@ -516,7 +501,7 @@ const JobDashboardPage: React.FC = () => {
               value={selectedChannels}
               onChange={(e) => setSelectedChannels(e.target.value as number[])}
               label="Filter by Channel"
-              sx={{ height: '40px' }}
+              sx={{ height: '35px' }}
               renderValue={(selected) => {
                 if (selected.length === 1 && selected[0] === -1) {
                   return "No channel filter";
@@ -545,7 +530,7 @@ const JobDashboardPage: React.FC = () => {
           <FormControl margin="normal" sx={{ minWidth: 120 }}>
             <InputLabel>Sort By</InputLabel>
             <Select value={selectedSortBy} onChange={(e) => setSelectedSortBy(e.target.value as number)}
-              label="Sort By" sx={{ height: '40px' }}>
+              label="Sort By" sx={{ height: '35px' }}>
               <MenuItem value="0">Newest</MenuItem>
               <MenuItem value="1">Oldest</MenuItem>
             </Select>
@@ -553,16 +538,17 @@ const JobDashboardPage: React.FC = () => {
         </div>
       </Toolbar>
 
-      <TableContainer>
+      {/* sx={{ border: "1px solid #EDE7F6" }} */}
+      <TableContainer >
         <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold', textAlign: 'center' }}>Name</TableCell>
-              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold', textAlign: 'center' }}>Status</TableCell>
-              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold', textAlign: 'center' }}>Date</TableCell>
-              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold', textAlign: 'center' }}>Next Scheduled Time</TableCell>
-              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold', textAlign: 'center' }}>Channels</TableCell>
-              <TableCell sx={{ backgroundColor: '#f0f0f0', fontWeight: 'Bold', textAlign: 'center' }}>Actions</TableCell>
+          <TableHead >
+            <TableRow sx={{backgroundColor: '#EDE7F6'}}>
+              <TableCell sx={{ backgroundColor: '#EDE7F6', fontWeight: 'Bold', textAlign: 'center' }}>Name</TableCell>
+              <TableCell sx={{ backgroundColor: '#EDE7F6', fontWeight: 'Bold', textAlign: 'center' }}>Status</TableCell>
+              <TableCell sx={{ backgroundColor: '#EDE7F6', fontWeight: 'Bold', textAlign: 'center' }}>Date</TableCell>
+              <TableCell sx={{ backgroundColor: '#EDE7F6', fontWeight: 'Bold', textAlign: 'center' }}>Next Scheduled Time</TableCell>
+              <TableCell sx={{ backgroundColor: '#EDE7F6', fontWeight: 'Bold', textAlign: 'center' }}>Channels</TableCell>
+              <TableCell sx={{ backgroundColor: '#EDE7F6', fontWeight: 'Bold', textAlign: 'center' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
