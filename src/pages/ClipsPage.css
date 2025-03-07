@@ -144,15 +144,21 @@
     left: 50%;
     transform: translateX(-50%);
     z-index: 1000;
-    border-top: none;
+    
     line-height: 24px;
     font-weight: 400;
     border-radius: 0;
     transition: all 0.2s ease-in-out;
+
+    margin-top: -2px !important;
+    background-color: white !important;
+    border-radius: 0 !important;
+    border-top: none !important;
+    border-color: #D6DBF8 !important;
 }
 
 .appendix.show-filters {
-    margin-top: -1px;
+    background-color: #EEEFF7 !important;
 }
 
 .appendix-button {
@@ -161,4 +167,35 @@
 
 .appendix-text {
     padding-left: 5px;
+}
+
+.hidden-toolbar {
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    height: 0 !important; 
+    min-height: 0 !important; 
+    transition: height 0.3s ease-in-out, min-height 0.3s ease-in-out; /* Transition both height and min-height */
+    overflow: hidden;
+}
+
+.filters-toolbar {
+    border: 1px solid #D6DBF8;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+    background-color: white;
+    border-left: none;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    transition: height 0.3s ease-in-out, min-height 0.3s ease-in-out; /* Transition both height and min-height */
+    overflow: hidden;
+}
+
+.sliding-toolbar {
+    transition: height 0.3s ease-in-out, min-height 0.3s ease-in-out; /* Transition both height and min-height */
+    overflow: hidden;
 }

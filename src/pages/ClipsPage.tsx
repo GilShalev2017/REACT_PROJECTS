@@ -78,6 +78,7 @@ const ClipsPage = () => {
 
   const toggleLowerToolbars = () => {
     setIsLowerToolbarHidden(!isLowerToolbarHidden);
+    console.log(isLowerToolbarHidden);
   };
 
   const selectAllClips = (checked: boolean | ((prevState: boolean) => boolean)) => {
@@ -236,7 +237,8 @@ const ClipsPage = () => {
             </div>
           </Toolbar>
 
-          <Toolbar sx={{ display: "flex", justifyContent: "space-between", border: "2px solid #D6DBF8", backgroundColor: 'whitesmoked' }}>
+          <Toolbar sx={{ display: "flex", justifyContent: "space-between", border: "2px solid #D6DBF8", backgroundColor: 'whitesmoked' }}
+                   className={`filters-toolbar sliding-toolbar ott-background-200 ott-border-color-1000 ${isLowerToolbarHidden ? 'hidden-toolbar' : ''}`}>
             <Typography variant="h6"></Typography>
             <div className="category-toolbar">
               {showLeftButton() && (
@@ -320,18 +322,9 @@ const ClipsPage = () => {
             </div>
           </Toolbar>
 
-          {/* <Toolbar
-            className={`filters-toolbar sliding-toolbar ott-background-200 ott-border-color-1000 ${isLowerToolbarHidden ? 'hidden-toolbar' : ''}`}
-          >
-
-
-            <span className="example-spacer"></span>
-          </Toolbar> */}
-
           <Button variant='outlined'
             className={`ott-background-200 ott-border-color-1000 appendix mat-stroked-button ${isLowerToolbarHidden ? 'show-filters' : 'hide'}`}
-            onClick={toggleLowerToolbars}
-          >
+            onClick={()=>toggleLowerToolbars()}>
             {isLowerToolbarHidden ? (
               <ExpandMoreIcon className="ott-mat-icon-2 appendix-button" />
             ) : (
