@@ -9,7 +9,6 @@ import {
   Select,
   styled,
   IconButton,
-  Avatar,
 } from "@mui/material";
 import AddNewJobComponent from "../components/AddNewJobComponent";
 import "./JobStatus.css";

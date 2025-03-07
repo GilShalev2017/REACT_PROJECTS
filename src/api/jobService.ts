@@ -1,9 +1,11 @@
 import axios from "axios";
-import { JobRequestFilter, AiJobRequest, Channel, LanguageDm, AIClipDm } from "../models/Models";
+import { JobRequestFilter, AiJobRequest, Channel, LanguageDm, AIClipDm, UITag } from "../models/Models";
 
 
 const API_KEY = "ActAuth eyJpZCI6MiwibmFtZSI6IkFkbWluaXN0cmF0b3IiLCJhY3R1c191c2VyX2dyb3VwX2lkIjowLCJpc19hZG1pbiI6dHJ1ZSwic2Vzc2lvbl9ndWlkIjoiNWIwYjU5YTItNTFjYi00ZjY2LTk5YzAtOTIzOTQyNzNjZjlmIiwiaW5fZGlyZWN0b3J5X3NlcnZpY2UiOmZhbHNlLCJhZF9ncm91cF9uYW1lIjpudWxsLCJzY29wZSI6IiIsIklkZW50aXR5IjpudWxsfSZYJlgmWC0xNjA2MTEwNzA3";
 const BASE_AI_JOB_API = "http://localhost:8894/intelligence/api/aijob";
+
+export const uiClipTags:UITag[] = [];
 
 export const getFilteredJobRequests = async (filter: JobRequestFilter): Promise<AiJobRequest[]> => {
     try {
@@ -112,7 +114,7 @@ export const graphql_searchClips = async (): Promise<AIClipDm[]> => {
     clipCreatedTo = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().slice(0, -5);
 
     let sortBy = "CreatedDate";
-    let sortOrder = 1; //-1
+    let sortOrder = -1;
 
     // if (selectedSortOption === 0) {
     //     sortOrder = -1;
@@ -241,7 +243,8 @@ export const graphql_searchClips = async (): Promise<AIClipDm[]> => {
         const pascalClips = camelToPascal(clips);
         // searchedClips = pascalClips;
         // filteredClips = pascalClips;
-        // uiClipTags = getUiClipTags(pascalClips);
+        const uiClipTags = getUiClipTags(pascalClips);
+        uiClipTags.push(...uiClipTags);
         // setClipsSelection(); // Assuming setClipsSelection is defined elsewhere
         // filterByTags(selectedTags); // Assuming filterByTags is defined elsewhere
         // isSearching = false;
@@ -255,20 +258,35 @@ export const graphql_searchClips = async (): Promise<AIClipDm[]> => {
 
 function camelToPascal(obj: any): any {
     if (obj === null || typeof obj !== 'object') {
-      return obj;
+        return obj;
     }
 
     if (Array.isArray(obj)) {
-      return obj.map((item) => camelToPascal(item));
+        return obj.map((item) => camelToPascal(item));
     }
 
     const result: any = {};
     for (const key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        const value = obj[key];
-        const pascalKey = key.charAt(0).toUpperCase() + key.slice(1);
-        result[pascalKey] = camelToPascal(value);
-      }
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+            const value = obj[key];
+            const pascalKey = key.charAt(0).toUpperCase() + key.slice(1);
+            result[pascalKey] = camelToPascal(value);
+        }
     }
     return result;
-  }
+}
+
+const getUiClipTags = (clips: AIClipDm[]): UITag[] => {
+    const clipTagsSet = new Set<string>();
+
+    clips.forEach(clip => {
+        clip?.UserTags?.forEach(tag => {
+            if (tag.trim() !== "") {
+                clipTagsSet.add(tag.trim());
+            }
+        });
+    });
+
+    return Array.from(clipTagsSet, tag => ({ text: tag, selected: false }));
+    //return Array.from(clipTagsSet, tag => ({ text: tag, selected: this.selectedTags.includes(tag) }));
+}

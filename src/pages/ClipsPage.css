@@ -55,8 +55,10 @@
 
 .search-container {
     border-radius: 6px;
-    margin-left: 24px;
+    /* margin-left: 24px; */
+    margin-left: 5px;
     margin-top: -6px;
+    height: 45px !important;
 }
 
 .search-div {
@@ -68,7 +70,7 @@
     .animated-search {
         width: 310px;
         overflow: hidden;
-        justify-self: left;
+        justify-self: stretch;
         transition: all 0.4s ease-in-out;
 
         .animated-search-div {
@@ -103,4 +105,60 @@
     &.expanded .search-filler {
         opacity: 0;
     }
+}
+
+
+.ott-input-icon {
+    cursor: pointer;
+    /* visibility: hidden; */
+    position: absolute;
+    top: 0px;
+    height: 100%;
+    display: grid;
+    align-items: center;
+    height: 14px;
+    width: 14px;
+    font-size: 14px;
+}
+
+.animated-search-div {
+    height: 33.5px;
+    line-height: 1.125;
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    .override-placeholder-style {
+        font-style: normal !important;
+        border-radius: 6px;
+    }
+
+    /* Style the InputAdornment (icons) */
+    .MuiInputAdornment-root {
+        /* Adjust margin, padding, etc. as needed */
+    }
+}
+
+.appendix {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    border-top: none;
+    line-height: 24px;
+    font-weight: 400;
+    border-radius: 0;
+    transition: all 0.2s ease-in-out;
+}
+
+.appendix.show-filters {
+    margin-top: -1px;
+}
+
+.appendix-button {
+    vertical-align: text-bottom;
+}
+
+.appendix-text {
+    padding-left: 5px;
 }

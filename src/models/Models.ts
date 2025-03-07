@@ -172,8 +172,8 @@ export interface KeyValuePair {
 export interface TimeRange {
     StartInSeconds: number;
     EndInSeconds: number;
-    Tooltip?:string;
-    Name?:string;
+    Tooltip?: string;
+    Name?: string;
 }
 
 export interface TimeCodedItem {
@@ -277,5 +277,10 @@ export interface AIClipDm {
     UserTags?: string[];
     CreatedBy?: string;
 
-    selected: boolean ;
+    selected: boolean;
+}
+
+export interface UITag {
+    text: string;
+    selected: boolean;
 }

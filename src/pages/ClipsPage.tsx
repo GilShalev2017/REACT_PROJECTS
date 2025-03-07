@@ -15,6 +15,7 @@ import {
   InputLabel,
   FormHelperText,
   Typography,
+  InputAdornment,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
@@ -27,10 +28,9 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import CancelIcon from '@mui/icons-material/Cancel';
 
 import './ClipsPage.css'; // Assuming you have your styles in ClipsPage.css
-import { graphql_searchClips } from '../api/jobService';
+import { graphql_searchClips, uiClipTags } from '../api/jobService';
 import { AIClipDm, Channel } from '../models/Models';
 import ClipCard from '../components/ClipCard';
-import { Height } from '@mui/icons-material';
 
 const ClipsPage = () => {
   const [welcomeScreenShown, setWelcomeScreenShown] = useState(false); // Replace with your logic
@@ -56,7 +56,7 @@ const ClipsPage = () => {
   const [selectedSortBy, setSelectedSortBy] = useState<number>(0);
 
   const onSearchClick = () => {
-    setIsSearchExpanded(!isSearchExpanded);
+    // setIsSearchExpanded(!isSearchExpanded);
   };
 
   const onSearchClips = (value: any) => {
@@ -159,9 +159,10 @@ const ClipsPage = () => {
       <div className="ott ott-background-200 main-div">
         <div className="sticky-div" style={{ display: welcomeScreenShown ? 'none' : 'block' }}>
 
-          <Toolbar sx={{ display: "flex", justifyContent: "space-between", backgroundColor: '#EEEFF7' }}>
-            <Typography variant="h6">Clips</Typography>
-            <div className="ott-background-200 ott-border-color-1000 search-container">
+          <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#EEEFF7', gap: 3 }}>
+            <Typography variant="h6" sx={{ width: '200px' }}>Clips</Typography>
+            <div className="ott-background-200 ott-border-color-1000 search-container" style={{marginLeft:'-800px'}}>
+              
               <div className={`search-div ${isSearchExpanded ? 'expanded' : ''}`} onClick={onSearchClick}>
                 <div className="animated-search">
                   <div className="ott-input-with-suffix-prefix animated-search-div">
@@ -173,17 +174,26 @@ const ClipsPage = () => {
                       className="override-placeholder-style"
                       classes={{ input: hasText ? 'has-text' : '' }}
                       onInput={onInput}
+                      startAdornment={ // Add SearchIcon as startAdornment
+                        <InputAdornment position="start">
+                          <SearchIcon />
+                        </InputAdornment>
+                      }
+                      endAdornment={ // Add CloseIcon as endAdornment
+                        searchTerm !== '' && (
+                          <InputAdornment position="end">
+                            <IconButton onClick={() => onSearchClips('')} edge="end">
+                              <CloseIcon />
+                            </IconButton>
+                          </InputAdornment>
+                        )
+                      }
+                      sx={{ // Add styling for input field
+                        backgroundColor: 'white', // Whitish background
+                        border: '1px solid lightgray', // Add border
+                        borderRadius: '6px', // Maintain border-radius
+                      }}
                     />
-                    <div className="ott-input-icon ott-left-input-icon">
-                      <SearchIcon />
-                    </div>
-                    {searchTerm !== '' && (
-                      <div className="ott-input-icon ott-right-input-icon">
-                        <IconButton onClick={() => onSearchClips('')}>
-                          <CloseIcon />
-                        </IconButton>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -194,16 +204,15 @@ const ClipsPage = () => {
                     value={selectedSearch}
                     onChange={(e) => setSelectedSearch(e.target.value)}
                     className="primary-color"
-                    style={{ fontWeight: 500, height:'20px' }}
-                  >
+                    style={{ fontWeight: 500, height: '20px' }} >
                     <MenuItem value="All">
                       <Tooltip title="Filter by all the words">
-                        <span onClick={() => { /* Implement your searchOperandAnd logic here */ }}>ALL</span>
+                        <span onClick={() => { }}>ALL</span>
                       </Tooltip>
                     </MenuItem>
                     <MenuItem value="ANY">
                       <Tooltip title="Filter by any of the words">
-                        <span onClick={() => { /* Implement your searchOperandAnd logic here */ }}>ANY</span>
+                        <span onClick={() => { }}>ANY</span>
                       </Tooltip>
                     </MenuItem>
                   </Select>
@@ -212,7 +221,7 @@ const ClipsPage = () => {
               </FormHelperText>
             </div>
             <div>
-              <Button className="ott-button refresh-button" variant="outlined" onClick={refreshAll} sx={{marginRight:2}}>
+              <Button className="ott-button refresh-button" variant="outlined" onClick={refreshAll} sx={{ marginRight: 2 }}>
                 <RefreshIcon className="ott-mat-icon-2 button-icon" />
                 <span className="button-text">Refresh</span>
               </Button>
@@ -229,6 +238,30 @@ const ClipsPage = () => {
 
           <Toolbar sx={{ display: "flex", justifyContent: "space-between", border: "2px solid #D6DBF8", backgroundColor: 'whitesmoked' }}>
             <Typography variant="h6"></Typography>
+            <div className="category-toolbar">
+              {showLeftButton() && (
+                <IconButton onClick={() => scrollCategories(-1)} className="arrow-icon">
+                  <ChevronLeftIcon />
+                </IconButton>
+              )}
+              <div ref={categoryContainerRef} className="category-container">
+                {uiClipTags.map((tag) => (
+                  <div
+                    key={tag.text}
+                    className={`ott-background-100 ott-color-10 category ${tag.selected ? 'ott-background-3001' : ''}`}
+                    title={tag.text}
+                    onClick={() => toggleTagSelection(tag)}
+                  >
+                    {tag.text}
+                  </div>
+                ))}
+              </div>
+              {showRightButton() && (
+                <IconButton onClick={() => scrollCategories(1)} className="arrow-icon">
+                  <ChevronRightIcon />
+                </IconButton>
+              )}
+            </div>
             <div>
               <FormControl margin="normal" sx={{ marginRight: 2, minWidth: 150 }}>
                 <InputLabel>Filter by Time-Range</InputLabel>
@@ -287,52 +320,15 @@ const ClipsPage = () => {
             </div>
           </Toolbar>
 
-          <Toolbar
+          {/* <Toolbar
             className={`filters-toolbar sliding-toolbar ott-background-200 ott-border-color-1000 ${isLowerToolbarHidden ? 'hidden-toolbar' : ''}`}
           >
-            <div className="category-toolbar">
-              {showLeftButton() && (
-                <IconButton onClick={() => scrollCategories(-1)} className="arrow-icon">
-                  <ChevronLeftIcon />
-                </IconButton>
-              )}
-              <div ref={categoryContainerRef} className="category-container">
-                {/* Assuming mediaInsightService.uiClipTags is now a prop or local state */}
-                {/* {filteredClips.map((tag) => (
-                  <div
-                    key={tag.id}
-                    className={`ott-background-100 ott-color-10 category ${tag.selected ? 'ott-background-3001' : ''}`}
-                    title={tag.text}
-                    onClick={() => toggleTagSelection(tag)}
-                  >
-                    {tag.text}
-                  </div>
-                ))} */}
-              </div>
-              {showRightButton() && (
-                <IconButton onClick={() => scrollCategories(1)} className="arrow-icon">
-                  <ChevronRightIcon />
-                </IconButton>
-              )}
-            </div>
+
 
             <span className="example-spacer"></span>
-            {/* <TimePeriod className="time-period" onIntervalChanged={onTimeFilterIntervalChanged} initialType="today" />
-            <ChannelMiniSelector
-              onChannelsSelected={onChannelSelectionChanged}
-              refreshChannels={refreshAll} // Assuming refreshAll is the refresh function
-              className="channel-field"
-              header="Filter by channel"
-              width="240px"
-              no_channels_selected="No channel filter"
-              all_channels="All active channels"
-              mat_label_color="ott-background-200"
-              // initialChannelIds={mediaInsightService.selectedChannelsIds} // Replace with your logic
-            /> */}
+          </Toolbar> */}
 
-          </Toolbar>
-
-          <Button
+          <Button variant='outlined'
             className={`ott-background-200 ott-border-color-1000 appendix mat-stroked-button ${isLowerToolbarHidden ? 'show-filters' : 'hide'}`}
             onClick={toggleLowerToolbars}
           >
@@ -402,41 +398,47 @@ const ClipsPage = () => {
           </Toolbar>
         </div>
 
-        {welcomeScreenShown && (
-          <div className="ott-background-200 ott-border-color-1000 welcome-screen">
-            <div className="image-container">
-              <img src="./resources/MediaInsightSubtract.png" alt="Media Insight Subtract" />
-              <img src="./resources/MediaInsightStart.png" className="secondary-image" alt="Media Insight Start" />
+        {
+          welcomeScreenShown && (
+            <div className="ott-background-200 ott-border-color-1000 welcome-screen">
+              <div className="image-container">
+                <img src="./resources/MediaInsightSubtract.png" alt="Media Insight Subtract" />
+                <img src="./resources/MediaInsightStart.png" className="secondary-image" alt="Media Insight Start" />
+              </div>
+              <h2 className="no-clips-yet">You don't have any clips yet</h2>
+              <span>Create a clip and start using Actus Ai features</span>
+              <Button variant="contained" color="primary" onClick={addNewClip} className="welcome-new-clip-button">
+                <img src="./resources/white_ai.svg" className="new-clip-img" alt="New Clip" />
+                New Clip
+              </Button>
             </div>
-            <h2 className="no-clips-yet">You don't have any clips yet</h2>
-            <span>Create a clip and start using Actus Ai features</span>
-            <Button variant="contained" color="primary" onClick={addNewClip} className="welcome-new-clip-button">
-              <img src="./resources/white_ai.svg" className="new-clip-img" alt="New Clip" />
-              New Clip
-            </Button>
-          </div>
-        )}
+          )
+        }
 
-        {filteredClips.length === 0 && (
-          <div className="ott-background-200 ott-border-color-1000 welcome-screen">
-            <div className="image-container">
-              <img src={process.env.PUBLIC_URL + '/images/MediaInsightSubtract.png'} alt="Media Insight Subtract" />
-              <img src={process.env.PUBLIC_URL + '/images/MediaInsightStart.png'} className="secondary-image" alt="Media Insight Start" />
+        {
+          filteredClips.length === 0 && (
+            <div className="ott-background-200 ott-border-color-1000 welcome-screen">
+              <div className="image-container">
+                <img src={process.env.PUBLIC_URL + '/images/MediaInsightSubtract.png'} alt="Media Insight Subtract" />
+                <img src={process.env.PUBLIC_URL + '/images/MediaInsightStart.png'} className="secondary-image" alt="Media Insight Start" />
+              </div>
+              <h2 className={`ott-color-10 no-clips-yet ${isSearching ? '' : 'hidden'}`}>Loading clips...</h2>
+              <h2 className={`ott-color-10 no-clips-yet ${!isSearching ? '' : 'hidden'}`}>No Clips Found...</h2>
             </div>
-            <h2 className={`ott-color-10 no-clips-yet ${isSearching ? '' : 'hidden'}`}>Loading clips...</h2>
-            <h2 className={`ott-color-10 no-clips-yet ${!isSearching ? '' : 'hidden'}`}>No Clips Found...</h2>
-          </div>
-        )}
+          )
+        }
 
-        {filteredClips.length > 0 && (
-          <div className="video-clip-gallery ott-background-200 ott-border-color-1000" style={{ height: getGalleryHeight() }}>
-            {filteredClips.map((clip) => (
-              <ClipCard key={clip.Id} clip={clip} />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+        {
+          filteredClips.length > 0 && (
+            <div className="video-clip-gallery ott-background-200 ott-border-color-1000" style={{ height: getGalleryHeight() }}>
+              {filteredClips.map((clip) => (
+                <ClipCard key={clip.Id} clip={clip} />
+              ))}
+            </div>
+          )
+        }
+      </div >
+    </div >
   );
 };
 
